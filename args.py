@@ -7,8 +7,8 @@ from utils.misc_utils import parse_anchors, read_class_names
 import math
 
 ### Some paths
-train_file = '/home/bjoshi/deepcl-data/cyclegan_synth/final_tf_train.txt'  # The path of the training txt file.
-val_file = '/home/bjoshi/YOLOv3_TensorFlow/data/my_data/train.txt'  # The path of the validation txt file.
+train_file = '/home/afrl/singleshotv3-tf/final_tf_train.txt'  # The path of the training txt file.
+val_file = '/home/afrl/singleshotv3-tf/data/my_data/train.txt'  # The path of the validation txt file.
 restore_path = './data/darknet_weights/yolov3.ckpt'  # The path of the weights to restore.
 save_dir = './checkpoint/'  # The directory of the weights to save.
 log_dir = './data/logs/'  # The directory to store the tensorboard log files.
@@ -17,10 +17,10 @@ anchor_path = './data/yolo_anchors.txt'  # The path of the anchor txt file.
 class_name_path = './data/aqua.names'  # The path of the class names.
 
 ### Training releated numbers
-batch_size = 4
+batch_size = 8
 img_size = [416, 416]  # Images will be resized to `img_size` and fed to the network, size format: [width, height]
 letterbox_resize = True  # Whether to use the letterbox resize, i.e., keep the original aspect ratio in the resized image.
-total_epoches = 100
+total_epoches = 25
 train_evaluation_step = 100  # Evaluate on the training batch after some steps.
 val_evaluation_epoch = 2  # Evaluate on the whole validation dataset after some epochs. Set to None to evaluate every epoch.
 save_epoch = 2  # Save the model after some epochs.

@@ -1,9 +1,4 @@
 import time
-import torch
-import math
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
 from utils import *
 import tensorflow as tf
 import numpy as np
@@ -213,7 +208,7 @@ class RegionLoss():
         nB = output.shape[0]
         nH = output.shape[1]
         nW = output.shape[2]
-        output = tf.transpose(output, [0, 3, 2, 1])
+        output = tf.transpose(output, [0, 3, 1, 2])
 
         x0 = tf.sigmoid(output[:,0,...])
         y0 = tf.sigmoid(output[:,1,...])
@@ -317,163 +312,98 @@ class RegionLoss():
         return [loss, loss_x, loss_y, loss_conf, nProposals, nCorrect]
 
 
-def predict(output, conf_thresh, num_classes, only_objectness=1, validation=False):
-    # Parameters
-    batch = output.shape[0]
-    h = output.shape[1]
-    w = output.shape[2]
+    def predict(self, output, num_classes):
 
-    # Activation
-    all_boxes = []
-    max_conf = -100000
-    output = output.view(batch * anchor_dim, 19 + num_classes, h * w).transpose(0, 1).contiguous().view(
-        19 + num_classes, batch * anchor_dim * h * w)
-    grid_x = torch.linspace(0, w - 1, w).repeat(h, 1).repeat(batch * anchor_dim, 1, 1).view(
-        batch * anchor_dim * h * w).cuda()
-    grid_y = torch.linspace(0, h - 1, h).repeat(w, 1).t().repeat(batch * anchor_dim, 1, 1).view(
-        batch * anchor_dim * h * w).cuda()
-    xs0 = torch.sigmoid(output[0]) + grid_x
-    ys0 = torch.sigmoid(output[1]) + grid_y
-    xs1 = output[2] + grid_x
-    ys1 = output[3] + grid_y
-    xs2 = output[4] + grid_x
-    ys2 = output[5] + grid_y
-    xs3 = output[6] + grid_x
-    ys3 = output[7] + grid_y
-    xs4 = output[8] + grid_x
-    ys4 = output[9] + grid_y
-    xs5 = output[10] + grid_x
-    ys5 = output[11] + grid_y
-    xs6 = output[12] + grid_x
-    ys6 = output[13] + grid_y
-    xs7 = output[14] + grid_x
-    ys7 = output[15] + grid_y
-    xs8 = output[16] + grid_x
-    ys8 = output[17] + grid_y
-    det_confs = torch.sigmoid(output[18])
-    cls_confs = torch.nn.Softmax()(Variable(output[19:19 + num_classes].transpose(0, 1))).data
-    cls_max_confs, cls_max_ids = torch.max(cls_confs, 1)
-    cls_max_confs = cls_max_confs.view(-1)
-    cls_max_ids = cls_max_ids.view(-1)
-    t1 = time.time()
-
-    # GPU to CPU
-    sz_hw = h * w
-    sz_hwa = sz_hw * anchor_dim
-    det_confs = convert2cpu(det_confs)
-    cls_max_confs = convert2cpu(cls_max_confs)
-    cls_max_ids = convert2cpu_long(cls_max_ids)
-    xs0 = convert2cpu(xs0)
-    ys0 = convert2cpu(ys0)
-    xs1 = convert2cpu(xs1)
-    ys1 = convert2cpu(ys1)
-    xs2 = convert2cpu(xs2)
-    ys2 = convert2cpu(ys2)
-    xs3 = convert2cpu(xs3)
-    ys3 = convert2cpu(ys3)
-    xs4 = convert2cpu(xs4)
-    ys4 = convert2cpu(ys4)
-    xs5 = convert2cpu(xs5)
-    ys5 = convert2cpu(ys5)
-    xs6 = convert2cpu(xs6)
-    ys6 = convert2cpu(ys6)
-    xs7 = convert2cpu(xs7)
-    ys7 = convert2cpu(ys7)
-    xs8 = convert2cpu(xs8)
-    ys8 = convert2cpu(ys8)
-    if validation:
-        cls_confs = convert2cpu(cls_confs.view(-1, num_classes))
-    t2 = time.time()
-
-    # Boxes filter
-    for b in range(batch):
         boxes = []
-        max_conf = -1
-        for cy in range(h):
-            for cx in range(w):
-                for i in range(anchor_dim):
-                    ind = b * sz_hwa + i * sz_hw + cy * w + cx
-                    det_conf = det_confs[ind]
-                    if only_objectness:
-                        conf = det_confs[ind]
-                    else:
-                        conf = det_confs[ind] * cls_max_confs[ind]
+        for i in range(len(output)):
+            bbox = self.predict_one(output[i], num_classes)
+            boxes.append(bbox)
 
-                    if conf > max_conf:
-                        max_conf = conf
-                        max_ind = ind
+        boxes = tf.stack(boxes)
 
-                    if conf > conf_thresh:
-                        bcx0 = xs0[ind]
-                        bcy0 = ys0[ind]
-                        bcx1 = xs1[ind]
-                        bcy1 = ys1[ind]
-                        bcx2 = xs2[ind]
-                        bcy2 = ys2[ind]
-                        bcx3 = xs3[ind]
-                        bcy3 = ys3[ind]
-                        bcx4 = xs4[ind]
-                        bcy4 = ys4[ind]
-                        bcx5 = xs5[ind]
-                        bcy5 = ys5[ind]
-                        bcx6 = xs6[ind]
-                        bcy6 = ys6[ind]
-                        bcx7 = xs7[ind]
-                        bcy7 = ys7[ind]
-                        bcx8 = xs8[ind]
-                        bcy8 = ys8[ind]
-                        cls_max_conf = cls_max_confs[ind]
-                        cls_max_id = cls_max_ids[ind]
-                        box = [bcx0 / w, bcy0 / h, bcx1 / w, bcy1 / h, bcx2 / w, bcy2 / h, bcx3 / w, bcy3 / h, bcx4 / w,
-                               bcy4 / h, bcx5 / w, bcy5 / h, bcx6 / w, bcy6 / h, bcx7 / w, bcy7 / h, bcx8 / w, bcy8 / h,
-                               det_conf, cls_max_conf, cls_max_id]
-                        if (not only_objectness) and validation:
-                            for c in range(num_classes):
-                                tmp_conf = cls_confs[ind][c]
-                                if c != cls_max_id and det_confs[ind] * tmp_conf > conf_thresh:
-                                    box.append(tmp_conf)
-                                    box.append(c)
-                        boxes.append(box)
-            if len(boxes) == 0:
-                bcx0 = xs0[max_ind]
-                bcy0 = ys0[max_ind]
-                bcx1 = xs1[max_ind]
-                bcy1 = ys1[max_ind]
-                bcx2 = xs2[max_ind]
-                bcy2 = ys2[max_ind]
-                bcx3 = xs3[max_ind]
-                bcy3 = ys3[max_ind]
-                bcx4 = xs4[max_ind]
-                bcy4 = ys4[max_ind]
-                bcx5 = xs5[max_ind]
-                bcy5 = ys5[max_ind]
-                bcx6 = xs6[max_ind]
-                bcy6 = ys6[max_ind]
-                bcx7 = xs7[max_ind]
-                bcy7 = ys7[max_ind]
-                bcx8 = xs8[max_ind]
-                bcy8 = ys8[max_ind]
-                cls_max_conf = cls_max_confs[max_ind]
-                cls_max_id = cls_max_ids[max_ind]
-                det_conf = det_confs[max_ind]
-                box = [bcx0 / w, bcy0 / h, bcx1 / w, bcy1 / h, bcx2 / w, bcy2 / h, bcx3 / w, bcy3 / h, bcx4 / w,
-                       bcy4 / h, bcx5 / w, bcy5 / h, bcx6 / w, bcy6 / h, bcx7 / w, bcy7 / h, bcx8 / w, bcy8 / h,
-                       det_conf, cls_max_conf, cls_max_id]
-                boxes.append(box)
-                all_boxes.append(boxes)
-            else:
-                all_boxes.append(boxes)
+        confs = boxes[:, 18]
+        max_conf_index = tf.arg_max(confs, 0)
 
-        all_boxes.append(boxes)
+        box_pr = boxes[max_conf_index, 0:18]
+        return box_pr
 
-    # print(all_boxes)
-    # print(len(all_boxes))
+    def predict_one(self, output, num_classes):
 
-    t3 = time.time()
-    if False:
-        print('---------------------------------')
-        print('matrix computation : %f' % (t1 - t0))
-        print('        gpu to cpu : %f' % (t2 - t1))
-        print('      boxes filter : %f' % (t3 - t2))
-        print('---------------------------------')
-    return all_boxes
+        # Parameters
+        batch = output.shape[0]
+        h = output.shape[1]
+        w = output.shape[2]
+
+        # use some broadcast tricks to get the mesh coordinates
+        grid_x = tf.range(h, dtype=tf.int32)
+        grid_y = tf.range(w, dtype=tf.int32)
+
+        grid_x, grid_y = tf.meshgrid(grid_x, grid_y)
+        # print(grid_x)
+        # print(grid_y)
+        x_offset = tf.reshape(grid_x, (-1, 1))
+        y_offset = tf.reshape(grid_y, (-1, 1))
+
+        # print(x_offset)
+        # print(y_offset)
+
+        output = output[0]
+
+        x_offset = tf.cast(x_offset, tf.float32)
+        y_offset = tf.cast(y_offset, tf.float32)
+
+
+        xs0 = tf.reshape(tf.sigmoid(output[:, :, 0]), [h*w, 1]) + x_offset
+        ys0 =  tf.reshape(tf.sigmoid(output[:, :, 1]), [h*w, 1]) + y_offset
+        xs1 = tf.reshape(output[:, :, 2], [h * w, 1]) + x_offset
+        ys1 = tf.reshape(output[:, :, 3], [h * w, 1]) + y_offset
+        xs2 = tf.reshape(output[:, :, 4], [h * w, 1]) + x_offset
+        ys2 = tf.reshape(output[:, :, 5], [h * w, 1]) + y_offset
+        xs3 = tf.reshape(output[:, :, 6], [h * w, 1]) + x_offset
+        ys3 = tf.reshape(output[:, :, 7], [h * w, 1]) + y_offset
+        xs4 = tf.reshape(output[:, :, 8], [h * w, 1]) + x_offset
+        ys4 = tf.reshape(output[:, :, 9], [h * w, 1]) + y_offset
+        xs5 = tf.reshape(output[:, :, 10], [h * w, 1]) + x_offset
+        ys5 = tf.reshape(output[:, :, 11], [h * w, 1]) + y_offset
+        xs6 = tf.reshape(output[:, :, 12], [h * w, 1]) + x_offset
+        ys6 = tf.reshape(output[:, :, 13], [h * w, 1]) + y_offset
+        xs7 = tf.reshape(output[:, :, 14], [h * w, 1]) + x_offset
+        ys7 = tf.reshape(output[:, :, 15], [h * w, 1]) + y_offset
+        xs8 = tf.reshape(output[:, :, 16], [h * w, 1]) + x_offset
+        ys8 = tf.reshape(output[:, :, 17], [h * w, 1]) + y_offset
+
+
+        det_confs = tf.reshape(tf.sigmoid(output[:, :, 18]), [h*w,1])
+
+        max_conf_index = tf.argmax(det_confs, 0)[0]
+        # print(max_conf_index)
+
+
+        bcx0 = xs0[max_conf_index, 0]
+        bcy0 = ys0[max_conf_index, 0]
+        bcx1 = xs1[max_conf_index, 0]
+        bcy1 = ys1[max_conf_index, 0]
+        bcx2 = xs2[max_conf_index, 0]
+        bcy2 = ys2[max_conf_index, 0]
+        bcx3 = xs3[max_conf_index, 0]
+        bcy3 = ys3[max_conf_index, 0]
+        bcx4 = xs4[max_conf_index, 0]
+        bcy4 = ys4[max_conf_index, 0]
+        bcx5 = xs5[max_conf_index, 0]
+        bcy5 = ys5[max_conf_index, 0]
+        bcx6 = xs6[max_conf_index, 0]
+        bcy6 = ys6[max_conf_index, 0]
+        bcx7 = xs7[max_conf_index, 0]
+        bcy7 = ys7[max_conf_index, 0]
+        bcx8 = xs8[max_conf_index, 0]
+        bcy8 = ys8[max_conf_index, 0]
+        max_conf = det_confs[max_conf_index, 0]
+
+        w = tf.cast(w, tf.float32)
+        h = tf.cast(h, tf.float32)
+
+        box = [bcx0 / w, bcy0 / h, bcx1 / w, bcy1 / h, bcx2 / w, bcy2 / h, bcx3 / w, bcy3 / h, bcx4 / w,
+        bcy4 / h, bcx5 / w, bcy5 / h, bcx6 / w, bcy6 / h, bcx7 / w, bcy7 / h, bcx8 / w, bcy8 / h, max_conf]
+
+
+        return tf.stack(box)

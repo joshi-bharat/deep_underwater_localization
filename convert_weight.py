@@ -25,6 +25,7 @@ with tf.Session() as sess:
     with tf.variable_scope('yolov3'):
         feature_map = model.forward(inputs)
 
+
     saver = tf.train.Saver(var_list=tf.global_variables(scope='yolov3'))
 
     load_ops = load_weights(tf.global_variables(scope='yolov3'), weight_path)

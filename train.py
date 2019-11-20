@@ -120,7 +120,7 @@ update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 with tf.control_dependencies(update_ops):
     # train_op = optimizer.minimize(loss[0] + l2_loss, var_list=update_vars, global_step=global_step)
     # apply gradient clip to avoid gradient exploding
-    gvs = optimizer.compute_gradients(rloss[0] + l2_loss, var_list=update_vars)
+    gvs = optimizer.compute_gradients(loss[0] + rloss[0] + l2_loss, var_list=update_vars)
     clip_grad_var = [gv if gv[0] is None else [
           tf.clip_by_norm(gv[0], 100.), gv[1]] for gv in gvs]
     train_op = optimizer.apply_gradients(clip_grad_var, global_step=global_step)
@@ -171,7 +171,7 @@ with tf.Session(config=config) as sess:
 
             if __global_step % args.train_evaluation_step == 0 and __global_step > 0:
                 # recall, precision = evaluate_on_cpu(__y_pred, __y_true, args.class_num, args.nms_topk, args.score_threshold, args.nms_threshold)
-                recall, precision = evaluate_on_gpu(sess, gpu_nms_op, pred_boxes_flag, pred_scores_flag, __y_pred, __y_true, args.class_num, args.nms_threshold)
+                # recall, precision = evaluate_on_gpu(sess, gpu_nms_op, pred_boxes_flag, pred_scores_flag, __y_pred, __y_true, args.class_num, args.nms_threshold)
 
                 # info = "Epoch: {}, global_step: {} | loss: total: {:.2f}, xy: {:.2f}, wh: {:.2f}, conf: {:.2f}, class: {:.2f} | ".format(
                 #         epoch, int(__global_step), loss_total.average, loss_xy.average, loss_wh.average, loss_conf.average, loss_class.average)
@@ -182,13 +182,13 @@ with tf.Session(config=config) as sess:
                 print(info)
                 logging.info(info)
 
-                writer.add_summary(make_summary('evaluation/train_batch_recall', recall), global_step=__global_step)
-                writer.add_summary(make_summary('evaluation/train_batch_precision', precision), global_step=__global_step)
-
-                if np.isnan(loss_total.average):
-                    print('****' * 10)
-                    raise ArithmeticError(
-                        'Gradient exploded! Please train again and you may need modify some parameters.')
+                # writer.add_summary(make_summary('evaluation/train_batch_recall', recall), global_step=__global_step)
+                # writer.add_summary(make_summary('evaluation/train_batch_precision', precision), global_step=__global_step)
+                #
+                # if np.isnan(loss_total.average):
+                #     print('****' * 10)
+                #     raise ArithmeticError(
+                #         'Gradient exploded! Please train again and you may need modify some parameters.')
 
         # NOTE: this is just demo. You can set the conditions when to save the weights.
         if epoch % args.save_epoch == 0 and epoch > 0:
