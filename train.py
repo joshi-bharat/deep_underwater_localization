@@ -37,7 +37,7 @@ train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.map(
     lambda x: tf.py_func(get_batch_data,
                          inp=[x, args.class_num, args.img_size, args.anchors, 'train', args.multi_scale_train, args.use_mix_up, args.letterbox_resize],
-                         Tout=[tf.int64, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32]),
+                         Tout=[tf.int64, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32]),
     num_parallel_calls=args.num_threads
 )
 train_dataset = train_dataset.prefetch(args.prefetech_buffer)
@@ -57,7 +57,8 @@ train_init_op = iterator.make_initializer(train_dataset)
 # val_init_op = iterator.make_initializer(val_dataset)
 
 # get an element from the chosen dataset iterator
-image_ids, image, y_true_13, y_true_26, y_true_52, slabels = iterator.get_next()
+image_ids, image, y_true_13, y_true_26, y_true_52, slabels, y_true_13_mask, y_true_26_mask, y_true_52_mask = iterator.get_next()
+y_true_mask = [y_true_13_mask, y_true_26_mask, y_true_52_mask]
 y_true = [y_true_13, y_true_26, y_true_52]
 
 # tf.data pipeline will lose the data `static` shape, so we need to set it manually
@@ -77,7 +78,7 @@ yolo_features = [pred_feature_maps[0], pred_feature_maps[1], pred_feature_maps[2
 region_features = [pred_feature_maps[3], pred_feature_maps[4], pred_feature_maps[5]]
 # single_shot_features =
 loss = yolo_model.compute_loss(yolo_features, y_true)
-rloss = region_loss.compute_loss(region_features, slabels)
+rloss = region_loss.compute_loss(region_features, slabels, y_true_mask)
 y_pred = yolo_model.predict(yolo_features)
 
 l2_loss = tf.losses.get_regularization_loss()

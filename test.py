@@ -44,22 +44,24 @@ def draw_demo_img(img, projectpts, color = (0, 255, 0)):
     return img
 
 
-
+batch_size = 1
 # setting loggers
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 
-tf.enable_eager_execution()
+tf.enable_eager_execution(config=config)
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',
                     datefmt='%a, %d %b %Y %H:%M:%S', filename=args.progress_log_path, filemode='w')
 
 
 
 val_dataset = tf.data.TextLineDataset(args.train_file)
-val_dataset = val_dataset.batch(1)
+val_dataset = val_dataset.batch(batch_size)
 val_dataset = val_dataset.map(
     lambda x: tf.py_func(get_batch_data,
                          inp=[x, args.class_num, args.img_size, args.anchors, 'train', False, False, args.letterbox_resize],
-                         Tout=[tf.int64, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32]),
-    num_parallel_calls=args.num_threads
+                         Tout=[tf.int64, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32]),
+    num_parallel_calls=1
 )
 val_dataset.prefetch(args.prefetech_buffer)
 
@@ -67,8 +69,8 @@ iterator = tf.data.Iterator.from_structure(val_dataset.output_types, val_dataset
 train_init_op = iterator.make_initializer(val_dataset)
 val_init_op = iterator.make_initializer(val_dataset)
 
-# # get an element from the chosen dataset iterator
-image_ids, image, y_true_13, y_true_26, y_true_52, slabels = iterator.get_next()
+# # get an element from the chosen dataset iteratorz
+image_ids, image, y_true_13, y_true_26, y_true_52, slabels, y_true_13_mask, y_true_26_mask, y_true_52_mask = iterator.get_next()
 # print(slabels)
 # batch = image.shape[0]
 # for i in range(batch):
@@ -87,7 +89,7 @@ image_ids, image, y_true_13, y_true_26, y_true_52, slabels = iterator.get_next()
 #     cv2.imshow('Image', img)
 #     cv2.waitKey(0)
 y_true = [y_true_13, y_true_26, y_true_52]
-
+y_true_mask = [y_true_13_mask, y_true_26_mask, y_true_52_mask]
 image_ids.set_shape([None])
 image.set_shape([None, None, None, 3])
 for y in y_true:
@@ -107,6 +109,6 @@ loss = yolo_model.compute_loss(yolo_preds, y_true)
 
 region_loss = RegionLoss(1, num_classes=1)
 
-loss = region_loss.compute_loss(region_preds, slabels)
+loss = region_loss.compute_loss(region_preds, slabels, y_true_mask)
 
 

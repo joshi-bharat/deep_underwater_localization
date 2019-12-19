@@ -79,7 +79,7 @@ class yolov3(object):
 
                 with tf.variable_scope('yolov3_head_singleshot'):
                     inter1, net = yolo_block(route_3, 512)
-                    feature_map_21 = slim.conv2d(net, (9*2 + 1 + self.class_num), 1,
+                    feature_map_21 = slim.conv2d(net, 9 * 3 + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_21 = tf.identity(feature_map_21, name='feature_map_21')
@@ -89,7 +89,7 @@ class yolov3(object):
                     concat1 = tf.concat([inter1, route_2], axis=3)
 
                     inter2, net = yolo_block(concat1, 256)
-                    feature_map_22 = slim.conv2d(net, 9 * 2 + 1 + self.class_num, 1,
+                    feature_map_22 = slim.conv2d(net, 9 * 3  + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_22 = tf.identity(feature_map_22, name='feature_map_22')
@@ -99,7 +99,7 @@ class yolov3(object):
                     concat2 = tf.concat([inter2, route_1], axis=3)
 
                     _, feature_map_23 = yolo_block(concat2, 128)
-                    feature_map_23 = slim.conv2d(feature_map_3, 9 * 2 + 1 +  self.class_num, 1,
+                    feature_map_23 = slim.conv2d(feature_map_3, 9 * 3 + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_23 = tf.identity(feature_map_23, name='feature_map_23')

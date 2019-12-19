@@ -122,6 +122,46 @@ def process_box(boxes, labels, img_size, class_num, anchors):
 
     return y_true_13, y_true_26, y_true_52
 
+def get_bbox_mask(boxes, img_size , img=None):
+
+    x1 = boxes[0, 0]
+    y1 = boxes[0, 1]
+    x2 = boxes[0, 2]
+    y2 = boxes[0, 3]
+
+    # Just to check if the bounding box is correct
+    if(img is not None):
+        img = cv2.rectangle(img, (x1,y1), (x2,y2), color=(0,9,255), thickness=2)
+        # cv2.namedWindow("Image")
+        cv2.imshow("Image", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+    # [13, 13, 3, 5+num_class+1] `5` means coords and labels. `1` means mix up weight.
+    y_true_13 = np.zeros((img_size[1] // 32, img_size[0] // 32), np.float32)
+    y_true_26 = np.zeros((img_size[1] // 16, img_size[0] // 16),np.float32)
+    y_true_52 = np.zeros((img_size[1] // 8, img_size[0] // 8), np.float32)
+
+    scale_13_x1 = int(x1 // 32)
+    scale_13_y1 = int(y1 // 32)
+    scale_13_x2 = int(x2 // 32)
+    scale_13_y2 = int(y2 // 32)
+    y_true_13[int(scale_13_y1):int(scale_13_y2)+1, int(scale_13_x1):int(scale_13_x2)+1 ] = 1
+
+    scale_26_x1 = int(x1 // 16)
+    scale_26_y1 = int(y1 // 16)
+    scale_26_x2 = int(x2 // 16)
+    scale_26_y2 = int(y2 // 16)
+    y_true_26[int(scale_26_y1):int(scale_26_y2)+1, int(scale_26_x1):int(scale_26_x2)+1 ] = 1
+
+    scale_52_x1 = int(x1 // 8)
+    scale_52_y1 = int(y1 // 8)
+    scale_52_x2 = int(x2 // 8)
+    scale_52_y2 = int(y2 // 8)
+    y_true_52[int(scale_52_y1):int(scale_52_y2)+1, int(scale_52_x1):int(scale_52_x2)+1 ] = 1
+
+    return y_true_13, y_true_26, y_true_52
 
 def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
     '''
@@ -181,8 +221,10 @@ def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
     img = img / 255.
 
     y_true_13, y_true_26, y_true_52 = process_box(boxes, labels, img_size, class_num, anchors)
+    y_true_13_mask, y_true_26_mask, y_true_52_mask = get_bbox_mask(boxes, img_size, img=None)
 
-    return img_idx, img, y_true_13, y_true_26, y_true_52, singleshot
+
+    return img_idx, img, y_true_13, y_true_26, y_true_52, singleshot, y_true_13_mask, y_true_26_mask, y_true_52_mask
 
 
 def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=False, mix_up=False, letterbox_resize=True, interval=10):
@@ -208,7 +250,7 @@ def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=F
     iter_cnt += 1
 
     img_idx_batch, img_batch, y_true_13_batch, y_true_26_batch, y_true_52_batch, slabel_batch = [], [], [], [], [], []
-
+    y_true_13_mask_batch, y_true_26_mask_batch, y_true_52_mask_batch = [], [], []
     # mix up strategy
     if mix_up and mode == 'train':
         mix_lines = []
@@ -221,7 +263,7 @@ def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=F
         batch_line = mix_lines
 
     for line in batch_line:
-        img_idx, img, y_true_13, y_true_26, y_true_52, singleshot = parse_data(line, class_num, img_size, anchors, mode, letterbox_resize)
+        img_idx, img, y_true_13, y_true_26, y_true_52, singleshot, y_true_13_mask,y_true_26_mask, y_true_52_mask  = parse_data(line, class_num, img_size, anchors, mode, letterbox_resize)
 
         slabels = []
         for s in singleshot:
@@ -241,7 +283,15 @@ def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=F
         y_true_26_batch.append(y_true_26)
         y_true_52_batch.append(y_true_52)
         slabel_batch.append(slabels)
+        y_true_13_mask_batch.append(y_true_13_mask)
+        y_true_26_mask_batch.append(y_true_26_mask)
+        y_true_52_mask_batch.append(y_true_52_mask)
+
     img_idx_batch, img_batch, y_true_13_batch, y_true_26_batch, y_true_52_batch, slabel_batch= np.asarray(img_idx_batch, np.int64), np.asarray(img_batch), np.asarray(y_true_13_batch),\
                                             np.asarray(y_true_26_batch), np.asarray(y_true_52_batch),np.asarray(slabel_batch, np.float32)
 
-    return img_idx_batch, img_batch, y_true_13_batch, y_true_26_batch, y_true_52_batch, slabel_batch
+    return img_idx_batch, img_batch, y_true_13_batch, y_true_26_batch, \
+           y_true_52_batch, slabel_batch, np.asarray(y_true_13_mask_batch),\
+           np.asarray(y_true_26_mask_batch), np.asarray(y_true_52_mask_batch)
+
+

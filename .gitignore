@@ -62,3 +62,6 @@ __pycache__/
 
 # darknet
 *.weights
+data/darknet_weights/*
+data/logs/*
+
