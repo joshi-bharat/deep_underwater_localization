@@ -229,18 +229,21 @@ class RegionLoss():
         predx = (x + grid_x)/tf.cast(nW, tf.float32)
         predy = (y + grid_y)/tf.cast(nH, tf.float32)
 
-
         nCorrect, bbox_masks, conf_mask, tconf, targetx, targety  = self.build_targets(predx, predy, target, bbox_mask, grid_x, grid_y)
 
         nProposals = tf.count_nonzero(conf > 0.25)
         conf_mask = tf.sqrt(conf_mask)
 
         coord_mask = tf.transpose(bbox_masks, [0, 3, 1, 2])
+
+        predx = predx * tf.cast(nW, tf.float32) - grid_x
+        predy = predy * tf.cast(nH, tf.float32) - grid_y
         loss_x = tf.reduce_sum(tf.abs(predx - targetx) * coord_mask)
         loss_y = tf.reduce_sum(tf.abs(predy - targety) * coord_mask)
 
-        conf = tf.transpose(conf, [0, 2, 3, 1])
-        loss_conf = tf.reduce_sum(tf.abs(conf - tconf) * conf_mask)
+        target_conf = tf.transpose(tconf, [0, 3, 1, 2])
+        conf_mask = tf.transpose(conf_mask, [0, 3, 1, 2])
+        loss_conf = tf.reduce_sum(tf.abs(conf - target_conf) * conf_mask)
 
         return nCorrect, nProposals, loss_x, loss_y, loss_conf
 
@@ -365,7 +368,7 @@ class RegionLoss():
 
         nAnchors = nH * nW
 
-        conf_mask = tf.ones([nB, nH, nW, 9]) * self.noobject_scale
+        conf_mask = tf.ones([nB, nH, nW, 9])
 
         targets = tf.reshape(target, [-1, 19])
         targets = targets[:,1:19]
@@ -389,16 +392,19 @@ class RegionLoss():
         bbox_masks = tf.expand_dims(bbox_mask, axis=3)
         bbox_masks = tf.tile(bbox_masks, [1,1,1, 9])
 
-        conf_mask = conf_mask * (bbox_masks * self.object_scale / self.noobject_scale)
+        conf_noobj_mask = conf_mask * self.noobject_scale * tf.cast(cur_confs <= self.thresh, tf.float32) *\
+                          tf.cast(tf.logical_not(tf.cast(bbox_masks, tf.bool)), tf.float32)
+
+        conf_mask = conf_mask * bbox_masks * self.object_scale  + conf_noobj_mask
         cur_confs = cur_confs * bbox_masks
 
         target_x = tf.reshape(target_x, [nB, 9, nW, nH])
         target_y = tf.reshape(target_y, [nB, 9, nW, nH])
 
-        targetx =  target_x * tf.cast(nW, tf.float32) - grid_x
+        targetx = target_x * tf.cast(nW, tf.float32) - grid_x
         targety = target_y * tf.cast(nH, tf.float32) - grid_y
 
-        nCorrect = tf.count_nonzero(tf.cast(cur_confs > 0.5, tf.float32))
+        nCorrect = tf.count_nonzero(cur_confs > 0.5)
 
         return nCorrect, bbox_masks, conf_mask, cur_confs, targetx, targety
 
@@ -409,11 +415,17 @@ class RegionLoss():
         disty = pred_y - target_y
 
         # Convert to [b, 169, 9]
-        distx = tf.square(tf.transpose(distx, [0, 2, 1]))
-        disty = tf.square(tf.transpose(disty, [0, 2, 1]))
+        distx = tf.transpose(distx , [0, 2, 1])
+        disty = tf.transpose(disty, [0, 2, 1])
+
+        distx = tf.square(distx)
+        disty = tf.square(disty)
+
 
         dist = distx + disty
 
+        # print(dist)
         conf = tf.exp(sharpness * -1.0 * dist)
+        # print(conf)
 
         return conf
