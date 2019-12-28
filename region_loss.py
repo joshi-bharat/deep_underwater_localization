@@ -2,6 +2,7 @@ import time
 from utils import *
 import tensorflow as tf
 import numpy as np
+from utils.misc_utils import get_bbox_mask
 
 def corner_confidences9(gt_corners, pr_corners, th=80, sharpness=2, im_width=416, im_height=416):
     ''' gt_corners: Ground-truth 2D projections of the 3D bounding box corners, shape: (16 x nA), type: torch.FloatTensor
@@ -189,8 +190,6 @@ def corner_confidence9(gt_corners, pr_corners, th=80, sharpness=2, im_width=416,
 #     ty8 = tf.reshape(ty8, [nB, nH, nW])
 #
 #     return  nCorrect, coord_mask, conf_mask, cls_mask, tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, ty0, ty1, ty2, ty3, ty4, ty5, ty6, ty7, ty8, tconf, tcls
-
-
 class RegionLoss():
     def __init__(self, batch_size, num_classes=1):
         self.batch_size = batch_size
@@ -231,8 +230,8 @@ class RegionLoss():
 
         nCorrect, bbox_masks, conf_mask, tconf, targetx, targety  = self.build_targets(predx, predy, target, bbox_mask, grid_x, grid_y)
 
-        nProposals = tf.count_nonzero(conf > 0.25)
-        conf_mask = tf.sqrt(conf_mask)
+        nProposals = tf.count_nonzero(conf > 0.5)
+        # conf_mask = tf.sqrt(conf_mask)
 
         coord_mask = tf.transpose(bbox_masks, [0, 3, 1, 2])
 
@@ -264,20 +263,100 @@ class RegionLoss():
         return [loss, loss_x, loss_y, loss_conf, nProposals, nCorrect]
 
 
-    def predict(self, output, num_classes):
+    def predict(self, outputs, bboxes, scores, num_classes=1):
 
-        boxes = []
-        for i in range(len(output)):
-            bbox = self.predict_one(output[i], num_classes)
-            boxes.append(bbox)
+        def reorg(output):
+            # Parameters
+            batch = output.shape[0]
+            h = output.shape[1]
+            w = output.shape[2]
 
-        boxes = tf.stack(boxes)
+            # use some broadcast tricks to get the mesh coordinates
+            grid_x = tf.range(h, dtype=tf.int32)
+            grid_y = tf.range(w, dtype=tf.int32)
 
-        confs = boxes[:, 18]
-        max_conf_index = tf.arg_max(confs, 0)
+            grid_x, grid_y = tf.meshgrid(grid_x, grid_y)
 
-        box_pr = boxes[max_conf_index, 0:18]
-        return box_pr
+            grid_x = tf.cast(grid_x, tf.float32)
+            grid_y = tf.cast(grid_y, tf.float32)
+
+            conf = output[..., 18:27]
+
+            output = tf.transpose(output, [0, 3, 1, 2])
+            x = output[:, 0:9, ...]
+            y = output[:, 9:18, ...]
+
+            predx = (x + grid_x) / tf.cast(w, tf.float32)
+            predy = (y + grid_y) / tf.cast(h, tf.float32)
+
+            predx = tf.transpose(predx, [0, 2, 3, 1])
+            predy = tf.transpose(predy, [0, 2, 3, 1])
+
+            #Ignoring batch size and assuming single image
+            #Need to fix later
+
+            predx = tf.reshape(predx, [h, w, 9])
+            predy = tf.reshape(predy, [h, w, 9])
+            conf = tf.reshape(conf, [h, w, 9])
+
+            return predx, predy, conf
+
+        bbox_masks = get_bbox_mask(bboxes)
+
+        for i in range(len(outputs)):
+            reorg_results = [reorg(output) for output in outputs]
+
+        x_list, y_list, confs_list = [], [], []
+
+        if bbox_masks is not None:
+            for i, result in enumerate(reorg_results):
+                x, y, conf = result
+                mask = bbox_masks[i]
+                # mask = tf.expand_dims(mask, axis=0)
+                # mask = tf.tile(mask, [self.batch_size, 1, 1])
+
+                # print(conf.shape)
+                conf = tf.sigmoid(conf)
+                pred_x = tf.boolean_mask(x, mask)
+                pred_y = tf.boolean_mask(y, mask)
+                pred_conf = tf.boolean_mask(conf, mask)
+
+                x_list.append(pred_x)
+                y_list.append(pred_y)
+                confs_list.append(pred_conf)
+
+        else:
+            for i, result in enumerate(reorg_results):
+                x, y, conf = result
+                w = x.shape[0]
+                h = x.shape[1]
+
+                x = tf.reshape(x, [h*w, 9])
+                y = tf.reshape(y, [h*w, 9])
+                conf = tf.reshape(conf, [h * w, 9])
+                x_list.append(x)
+                y_list.append(y)
+                confs_list.append(conf)
+
+        # collect results on three scales
+        # take 416*416 input image for example:
+        # shape: [inside_masks, 9]
+        pred_x = tf.concat(x_list, axis=0)
+        pred_y = tf.concat(y_list, axis=0)
+        pred_conf = tf.concat(confs_list, axis=0)
+
+        total_max_count = pred_x.shape[0]
+        mean_x  = tf.reduce_mean(pred_x, axis=1)    #average x position
+        mean_y = tf.reduce_mean(pred_y, axis=1)     #average y position
+        mean_conf = tf.reduce_mean(pred_conf, axis=1)   #average 2D confs
+
+        max_conf_idx = tf.arg_max(mean_conf, 0)
+
+        center_xy = tf.transpose(tf.stack([mean_x, mean_y]), [1, 0])
+        ref_xy = tf.tile(tf.reshape(center_xy[max_conf_idx], [1, -1]), [total_max_count, 1])
+        selected = tf.linalg.norm(center_xy - ref_xy, axis=1) < 0.2
+
+        return pred_x, pred_y, pred_conf, selected
 
     def predict_one(self, output, num_classes):
 
@@ -395,7 +474,8 @@ class RegionLoss():
         conf_noobj_mask = conf_mask * self.noobject_scale * tf.cast(cur_confs <= self.thresh, tf.float32) *\
                           tf.cast(tf.logical_not(tf.cast(bbox_masks, tf.bool)), tf.float32)
 
-        conf_mask = conf_mask * bbox_masks * self.object_scale  + conf_noobj_mask
+        #removing the noobj mask, not sure if it will improve the results
+        conf_mask = conf_mask * bbox_masks * self.object_scale
         cur_confs = cur_confs * bbox_masks
 
         target_x = tf.reshape(target_x, [nB, 9, nW, nH])
