@@ -277,7 +277,7 @@ def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
 
     # print(p2d.shape)
     # print(p3d.shape)
-    retval, rot, trans, inliers = cv2.solvePnPRansac(p3d, p2d, intrinsics, None, flags=cv2.SOLVEPNP_P3P)
+    retval, rot, trans, inliers = cv2.solvePnPRansac(p3d, p2d, intrinsics, None, flags=cv2.SOLVEPNP_EPNP)
 
     if not retval:
         print("Ransac did not converge")

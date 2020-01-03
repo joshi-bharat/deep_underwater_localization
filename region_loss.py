@@ -199,6 +199,7 @@ class RegionLoss():
         self.object_scale = 5
         self.class_scale = 1
         self.thresh = 0.6
+        self.nV = 9
 
     def region_loss(self, output, target, bbox_mask):
         # Parameters
@@ -209,9 +210,9 @@ class RegionLoss():
         nW = output.shape[2]
         output = tf.transpose(output, [0, 3, 1, 2])
 
-        x = output[:,0:9,...]
-        y = output[:,9:18,...]
-        conf = tf.sigmoid(output[:,18:27,...])
+        x = output[:,0:self.nV,...]
+        y = output[:,self.nV:2*self.nV,...]
+        conf = tf.sigmoid(output[:,2*self.nV:3*self.nV,...])
 
         grid_x = tf.range(nH, dtype=tf.int32)
         grid_y = tf.range(nW, dtype=tf.int32)
@@ -249,9 +250,9 @@ class RegionLoss():
     def compute_loss(self, region_preds, slabels, bbox_mask):
         nCorrect, nProposals, loss_x, loss_y, loss_conf, loss = 0, 0, 0, 0, 0, 0
         # print(region_preds)
-        for i in range(1):  #Change this later
+        for i in range(len(region_preds)):  #Change this later
             # print(i)
-            pred = tf.reshape(region_preds[i],[self.batch_size, 2**i * 13, 2**i * 13, 28])
+            pred = tf.reshape(region_preds[i],[self.batch_size, 2**i * 13, 2**i * 13, self.nV*3+1])
             total_loss = self.region_loss(pred, slabels, bbox_mask[i])
             nCorrect += total_loss[0]
             nProposals += total_loss[1]
@@ -283,8 +284,8 @@ class RegionLoss():
             conf = output[..., 18:27]
 
             output = tf.transpose(output, [0, 3, 1, 2])
-            x = output[:, 0:9, ...]
-            y = output[:, 9:18, ...]
+            x = output[:, 0:self.nV, ...]
+            y = output[:, self.nV:2*self.nV, ...]
 
             predx = (x + grid_x) / tf.cast(w, tf.float32)
             predy = (y + grid_y) / tf.cast(h, tf.float32)
@@ -295,9 +296,9 @@ class RegionLoss():
             #Ignoring batch size and assuming single image
             #Need to fix later
 
-            predx = tf.reshape(predx, [h, w, 9])
-            predy = tf.reshape(predy, [h, w, 9])
-            conf = tf.reshape(conf, [h, w, 9])
+            predx = tf.reshape(predx, [h, w, self.nV])
+            predy = tf.reshape(predy, [h, w, self.nV])
+            conf = tf.reshape(conf, [h, w, self.nV])
 
             return predx, predy, conf
 
@@ -331,16 +332,16 @@ class RegionLoss():
                 w = x.shape[0]
                 h = x.shape[1]
 
-                x = tf.reshape(x, [h*w, 9])
-                y = tf.reshape(y, [h*w, 9])
-                conf = tf.reshape(conf, [h * w, 9])
+                x = tf.reshape(x, [h*w, self.nV])
+                y = tf.reshape(y, [h*w, self.nV])
+                conf = tf.reshape(conf, [h * w, self.nV])
                 x_list.append(x)
                 y_list.append(y)
                 confs_list.append(conf)
 
         # collect results on three scales
         # take 416*416 input image for example:
-        # shape: [inside_masks, 9]
+        # shape: [inside_masks, self.nV]
         pred_x = tf.concat(x_list, axis=0)
         pred_y = tf.concat(y_list, axis=0)
         pred_conf = tf.concat(confs_list, axis=0)
@@ -358,6 +359,7 @@ class RegionLoss():
 
         return pred_x, pred_y, pred_conf, selected
 
+    #Not used now, just kept for documentation purposes
     def predict_one(self, output, num_classes):
 
         # Parameters
@@ -447,10 +449,10 @@ class RegionLoss():
 
         nAnchors = nH * nW
 
-        conf_mask = tf.ones([nB, nH, nW, 9])
+        conf_mask = tf.ones([nB, nH, nW, self.nV])
 
-        targets = tf.reshape(target, [-1, 19])
-        targets = targets[:,1:19]
+        targets = tf.reshape(target, [-1, 2*self.nV + 1])
+        targets = targets[:,1:2*self.nV + 1]
         # print(targets)
         target_x = targets[:, ::2]
         target_y = targets[:, 1::2]
@@ -458,18 +460,18 @@ class RegionLoss():
         target_x = tf.expand_dims(target_x, axis=2)
         target_y = tf.expand_dims(target_y, axis=2)
 
-        pred_x = tf.reshape(pred_x, [-1, 9, nAnchors])
-        pred_y = tf.reshape(pred_y, [-1, 9, nAnchors])
+        pred_x = tf.reshape(pred_x, [-1, self.nV, nAnchors])
+        pred_y = tf.reshape(pred_y, [-1, self.nV, nAnchors])
 
         target_x = tf.tile(target_x, [1,1,nAnchors])
         target_y = tf.tile(target_y, [1,1,nAnchors])
 
         cur_confs = self.corner_confidences9(pred_x, target_x, pred_y, target_y)
 
-        cur_confs = tf.reshape(cur_confs, [nB, nH, nW, 9])
+        cur_confs = tf.reshape(cur_confs, [nB, nH, nW, self.nV])
 
         bbox_masks = tf.expand_dims(bbox_mask, axis=3)
-        bbox_masks = tf.tile(bbox_masks, [1,1,1, 9])
+        bbox_masks = tf.tile(bbox_masks, [1,1,1, self.nV])
 
         conf_noobj_mask = conf_mask * self.noobject_scale * tf.cast(cur_confs <= self.thresh, tf.float32) *\
                           tf.cast(tf.logical_not(tf.cast(bbox_masks, tf.bool)), tf.float32)
@@ -478,8 +480,8 @@ class RegionLoss():
         conf_mask = conf_mask * bbox_masks * self.object_scale
         cur_confs = cur_confs * bbox_masks
 
-        target_x = tf.reshape(target_x, [nB, 9, nW, nH])
-        target_y = tf.reshape(target_y, [nB, 9, nW, nH])
+        target_x = tf.reshape(target_x, [nB, self.nV, nW, nH])
+        target_y = tf.reshape(target_y, [nB, self.nV, nW, nH])
 
         targetx = target_x * tf.cast(nW, tf.float32) - grid_x
         targety = target_y * tf.cast(nH, tf.float32) - grid_y
