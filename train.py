@@ -128,7 +128,7 @@ with tf.control_dependencies(update_ops):
 
 if args.save_optimizer:
     print('Saving optimizer parameters to checkpoint! Remember to restore the global_step in the fine-tuning afterwards.')
-    saver_to_save = tf.train.Saver()
+    saver_to_save = tf.train.Saver(max_to_keep=20)
     saver_best = tf.train.Saver()
 
 config = tf.ConfigProto()

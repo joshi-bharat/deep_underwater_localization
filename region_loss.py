@@ -477,7 +477,7 @@ class RegionLoss():
                           tf.cast(tf.logical_not(tf.cast(bbox_masks, tf.bool)), tf.float32)
 
         #removing the noobj mask, not sure if it will improve the results
-        conf_mask = conf_mask * bbox_masks * self.object_scale
+        conf_mask = conf_mask * bbox_masks * self.object_scale + conf_noobj_mask
         cur_confs = cur_confs * bbox_masks
 
         target_x = tf.reshape(target_x, [nB, self.nV, nW, nH])
