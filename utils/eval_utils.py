@@ -8,7 +8,7 @@ from collections import Counter
 
 from utils.nms_utils import cpu_nms, gpu_nms
 from utils.data_utils import parse_line
-
+import math
 
 def calc_iou(pred_boxes, true_boxes):
     '''
@@ -421,3 +421,41 @@ def voc_eval(gt_dict, val_preds, classidx, iou_thres=0.5, use_07_metric=False):
 
     # return rec, prec, ap
     return npos, nd, tp[-1] / float(npos), tp[-1] / float(nd), ap
+
+
+def pnp(points_3D, points_2D, cameraMatrix):
+	try:
+		distCoeffs = pnp.distCoeffs
+	except:
+		distCoeffs = np.zeros((8, 1), dtype='float32')
+
+	assert points_2D.shape[0] == points_2D.shape[0], 'points 3D and points 2D must have same number of vertices'
+
+	_, R_exp, t = cv2.solvePnP(points_3D,
+	                           # points_2D,
+	                           np.ascontiguousarray(points_2D[:, :2]).reshape((-1, 1, 2)),
+	                           cameraMatrix,
+	                           distCoeffs)
+
+	R, _ = cv2.Rodrigues(R_exp)
+	# Rt = np.c_[R, t]
+	return R, t
+
+def calcAngularDistance(gt_rot, pr_rot):
+
+	rotDiff = np.dot(gt_rot, np.transpose(pr_rot))
+	trace = np.trace(rotDiff)
+	return np.rad2deg(np.arccos((trace-1.0)/2.0))
+
+def compute_transformation(points_3D, transformation):
+	return transformation.dot(points_3D)
+
+def calc_pts_diameter(pts):
+    diameter = -1
+    for pt_id in range(pts.shape[0]):
+        pt_dup = np.tile(np.array([pts[pt_id, :]]), [pts.shape[0] - pt_id, 1])
+        pts_diff = pt_dup - pts[pt_id:, :]
+        max_dist = math.sqrt((pts_diff * pts_diff).sum(axis=1).max())
+        if max_dist > diameter:
+            diameter = max_dist
+    return diameter

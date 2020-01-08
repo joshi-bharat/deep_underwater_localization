@@ -59,3 +59,30 @@ def draw_demo_img(img, projectpts, color = (0, 255, 0)):
     cv2.line(img, vertices[7], vertices[8], color, 2)
 
     return img
+
+
+# def draw_demo_img(img, projectpts, color = (0, 255, 0), nV=9):
+#
+#     vertices = []
+#     for i in range(nV):
+#         x = projectpts[i][0]
+#         y = projectpts[i][1]
+#         coordinates = (int(x),int(y))
+#         vertices.append(coordinates)
+#         cv2.circle(img, coordinates, 2, (0, 255, 255), -1)
+#
+#     # print(vertices)
+#     cv2.line(img, vertices[0], vertices[1], color, 2)
+#     cv2.line(img, vertices[0], vertices[2], color, 2)
+#     cv2.line(img, vertices[0], vertices[4], color, 2)
+#     cv2.line(img, vertices[1], vertices[5], color, 2)
+#     cv2.line(img, vertices[1], vertices[3], color, 2)
+#     cv2.line(img, vertices[2], vertices[3], color, 2)
+#     cv2.line(img, vertices[2], vertices[6], color, 2)
+#     cv2.line(img, vertices[3], vertices[7], color, 2)
+#     cv2.line(img, vertices[4], vertices[5], color, 2)
+#     cv2.line(img, vertices[4], vertices[6], color, 2)
+#     cv2.line(img, vertices[5], vertices[7], color, 2)
+#     cv2.line(img, vertices[6], vertices[7], color, 2)
+#
+#     return img

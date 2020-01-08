@@ -12,7 +12,7 @@ PY_VERSION = sys.version_info[0]
 iter_cnt = 0
 
 
-def parse_line(line):
+def parse_line(line, nV=9):
     '''
     Given a line from the training/test txt file, return parsed info.
     line format: line_index, img_path, img_width, img_height, [box_info_1 (5 number)], ...
@@ -34,7 +34,7 @@ def parse_line(line):
     img_width = int(s[2])
     img_height = int(s[3])
     class_label = s[4]
-    ss = s[9:]
+    ss = s[9:9+2*nV]
     sslabel = []
     singleshot_label = []
     sslabel.append(int(class_label))
@@ -163,7 +163,7 @@ def get_bbox_mask(boxes, img_size , img=None):
 
     return y_true_13, y_true_26, y_true_52
 
-def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
+def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize, nV=9):
     '''
     param:
         line: a line from the training/test txt file
@@ -174,7 +174,7 @@ def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
         letterbox_resize: whether to use the letterbox resize, i.e., keep the original aspect ratio in the resized image.
     '''
     if not isinstance(line, list):
-        img_idx, pic_path, boxes, labels, _, _, singleshot = parse_line(line)
+        img_idx, pic_path, boxes, labels, _, _, singleshot = parse_line(line, nV=nV)
         img = cv2.imread(pic_path)
         # expand the 2nd dimension, mix up weight default to 1.
         boxes = np.concatenate((boxes, np.full(shape=(boxes.shape[0], 1), fill_value=1., dtype=np.float32)), axis=-1)
@@ -211,7 +211,7 @@ def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
 
         # random horizontal flip
         # h, w, _ = img.shape
-        # img, boxes = random_flip(img, boxes, px=0.5)
+        # img, boxes, singleshot = random_flip(img, boxes, singleshot, px=0.5, py=0.5)
     else:
         img, boxes , singleshot= resize_with_bbox(img, boxes, img_size[0], img_size[1], singleshot,  interp=1, letterbox=letterbox_resize)
 
@@ -227,7 +227,7 @@ def parse_data(line, class_num, img_size, anchors, mode, letterbox_resize):
     return img_idx, img, y_true_13, y_true_26, y_true_52, singleshot, y_true_13_mask, y_true_26_mask, y_true_52_mask
 
 
-def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=False, mix_up=False, letterbox_resize=True, interval=10):
+def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=False, mix_up=False, letterbox_resize=True, interval=10, nV=9):
     '''
     generate a batch of imgs and labels
     param:
@@ -263,7 +263,7 @@ def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=F
         batch_line = mix_lines
 
     for line in batch_line:
-        img_idx, img, y_true_13, y_true_26, y_true_52, singleshot, y_true_13_mask,y_true_26_mask, y_true_52_mask  = parse_data(line, class_num, img_size, anchors, mode, letterbox_resize)
+        img_idx, img, y_true_13, y_true_26, y_true_52, singleshot, y_true_13_mask,y_true_26_mask, y_true_52_mask  = parse_data(line, class_num, img_size, anchors, mode, letterbox_resize, nV=nV)
 
         slabels = []
         for s in singleshot:
@@ -271,7 +271,7 @@ def get_batch_data(batch_line, class_num, img_size, anchors, mode, multi_scale=F
             ss.append(s[0])
             for i in range(1, len(s)):
                 if i % 2 == 0:
-                    ss.append(s[i] / img_size[1] )
+                    ss.append(s[i] / img_size[1])
                 else:
                     ss.append(s[i] / img_size[0])
             slabels.append(ss)

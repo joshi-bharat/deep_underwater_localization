@@ -36,7 +36,7 @@ train_dataset = train_dataset.shuffle(args.train_img_cnt)
 train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.map(
     lambda x: tf.py_func(get_batch_data,
-                         inp=[x, args.class_num, args.img_size, args.anchors, 'train', args.multi_scale_train, args.use_mix_up, args.letterbox_resize],
+                         inp=[x, args.class_num, args.img_size, args.anchors, 'train', args.multi_scale_train, args.use_mix_up, args.letterbox_resize, 10, args.nV],
                          Tout=[tf.int64, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32]),
     num_parallel_calls=args.num_threads
 )
@@ -70,8 +70,8 @@ for y in y_true:
 ##################
 # Model definition
 ##################
-region_loss = RegionLoss(args.batch_size, num_classes=1)
-yolo_model = yolov3(args.class_num, args.anchors, args.use_label_smooth, args.use_focal_loss, args.batch_norm_decay, args.weight_decay, use_static_shape=False)
+region_loss = RegionLoss(args.batch_size, num_classes=1, nV=args.nV)
+yolo_model = yolov3(args.class_num, args.anchors, args.use_label_smooth, args.use_focal_loss, args.batch_norm_decay, args.weight_decay, use_static_shape=False, nV=args.nV)
 with tf.variable_scope('yolov3'):
     pred_feature_maps = yolo_model.forward(image, is_training=is_training)
 yolo_features = [pred_feature_maps[0], pred_feature_maps[1], pred_feature_maps[2]]

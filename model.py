@@ -11,7 +11,7 @@ from utils.layer_utils import conv2d, darknet53_body, yolo_block, upsample_layer
 
 class yolov3(object):
 
-    def __init__(self, class_num, anchors, use_label_smooth=False, use_focal_loss=False, batch_norm_decay=0.999, weight_decay=5e-4, use_static_shape=True):
+    def __init__(self, class_num, anchors, use_label_smooth=False, use_focal_loss=False, batch_norm_decay=0.999, weight_decay=5e-4, use_static_shape=True, nV=9):
 
         # self.anchors = [[10, 13], [16, 30], [33, 23],
                          # [30, 61], [62, 45], [59,  119],
@@ -26,6 +26,7 @@ class yolov3(object):
         # if `use_static_shape` is True, use tensor.get_shape(), otherwise use tf.shape(tensor)
         # static_shape is slightly faster
         self.use_static_shape = use_static_shape
+        self.nV = nV
 
     def forward(self, inputs, is_training=False, reuse=False):
         # the input img_size, form: [height, weight]
@@ -79,7 +80,7 @@ class yolov3(object):
 
                 with tf.variable_scope('yolov3_head_singleshot'):
                     inter1, net = yolo_block(route_3, 512)
-                    feature_map_21 = slim.conv2d(net, 9 * 3 + self.class_num, 1,
+                    feature_map_21 = slim.conv2d(net, self.nV * 3 + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_21 = tf.identity(feature_map_21, name='feature_map_21')
@@ -89,7 +90,7 @@ class yolov3(object):
                     concat1 = tf.concat([inter1, route_2], axis=3)
 
                     inter2, net = yolo_block(concat1, 256)
-                    feature_map_22 = slim.conv2d(net, 9 * 3  + self.class_num, 1,
+                    feature_map_22 = slim.conv2d(net, self.nV * 3  + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_22 = tf.identity(feature_map_22, name='feature_map_22')
@@ -99,7 +100,7 @@ class yolov3(object):
                     concat2 = tf.concat([inter2, route_1], axis=3)
 
                     _, feature_map_23 = yolo_block(concat2, 128)
-                    feature_map_23 = slim.conv2d(feature_map_3, 9 * 3 + self.class_num, 1,
+                    feature_map_23 = slim.conv2d(feature_map_3, self.nV * 3 + self.class_num, 1,
                                                 stride=1, normalizer_fn=None,
                                                 activation_fn=None, biases_initializer=tf.zeros_initializer())
                     feature_map_23 = tf.identity(feature_map_23, name='feature_map_23')

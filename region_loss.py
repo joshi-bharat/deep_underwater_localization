@@ -191,7 +191,7 @@ def corner_confidence9(gt_corners, pr_corners, th=80, sharpness=2, im_width=416,
 #
 #     return  nCorrect, coord_mask, conf_mask, cls_mask, tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, ty0, ty1, ty2, ty3, ty4, ty5, ty6, ty7, ty8, tconf, tcls
 class RegionLoss():
-    def __init__(self, batch_size, num_classes=1):
+    def __init__(self, batch_size, num_classes=1, nV=9):
         self.batch_size = batch_size
         self.num_classes = num_classes
         self.coord_scale = 1
@@ -199,7 +199,7 @@ class RegionLoss():
         self.object_scale = 5
         self.class_scale = 1
         self.thresh = 0.6
-        self.nV = 9
+        self.nV = nV
 
     def region_loss(self, output, target, bbox_mask):
         # Parameters
@@ -281,7 +281,7 @@ class RegionLoss():
             grid_x = tf.cast(grid_x, tf.float32)
             grid_y = tf.cast(grid_y, tf.float32)
 
-            conf = output[..., 18:27]
+            conf = output[..., 2*self.nV:3*self.nV]
 
             output = tf.transpose(output, [0, 3, 1, 2])
             x = output[:, 0:self.nV, ...]
