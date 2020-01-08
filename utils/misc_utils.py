@@ -271,7 +271,7 @@ def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
     if(len(p3d)) < 6:
         #will need to select the best one may be but not sure
         print("Not enough points for Ransac")
-        return None
+        return None, None, None
 
     intrinsics = np.array(get_camera_intrinsic(), dtype=np.float32)
 
@@ -281,10 +281,10 @@ def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
 
     if not retval:
         print("Ransac did not converge")
-        return None
+        return None, None, None
 
     R = cv2.Rodrigues(rot)[0]  # convert to rotation matrix
     T = trans.reshape(-1, 1)
     rt = np.concatenate((R, T), 1)
 
-    return rt
+    return R, T, rt

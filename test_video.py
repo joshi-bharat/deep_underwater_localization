@@ -27,7 +27,7 @@ parser.add_argument("--new_size", nargs='*', type=int, default=[416, 416],
                     help="Resize the input image with `new_size`, size format: [width, height]")
 parser.add_argument("--class_name_path", type=str, default="./data/aqua.names",
                     help="The path of the class names.")
-parser.add_argument("--checkpoint_dir", type=str, default="/home/bjoshi/singleshotv3-tf/checkpoint",
+parser.add_argument("--checkpoint_dir", type=str, default="/home/bjoshi/checkpoint",
                     help="The path of the weights to restore.")
 parser.add_argument("--save_video", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Whether to save the video detection results.")
@@ -79,8 +79,8 @@ with tf.Session(config=config) as sess:
 
     pred_scores = pred_confs * pred_probs
 
-    boxes, scores, labels = gpu_nms(pred_boxes, pred_scores, args.num_class, max_boxes=2, score_thresh=0.3,
-                                    nms_thresh=0.45)
+    boxes, scores, labels = gpu_nms(pred_boxes, pred_scores, args.num_class, max_boxes=1, score_thresh=0.2,
+                                    nms_thresh=0.3)
 
     x, y, conf, selected = region_loss.predict(region_features,  boxes, scores, num_classes=1)
 
@@ -104,7 +104,7 @@ with tf.Session(config=config) as sess:
 
         boxes_, scores_, labels_, x_, y_, conf_, selected_ = sess.run([boxes, scores, labels, x, y, conf, selected ], feed_dict={input_data: img})
 
-        transform = solve_pnp(x_, y_, conf_, gt_corners, selected_, video_width, video_height)
+        rot, trans, transform = solve_pnp(x_, y_, conf_, gt_corners, selected_, video_width, video_height)
 
         if transform is not None:
             intrinsics = np.array(get_camera_intrinsic(), dtype=np.float32)
