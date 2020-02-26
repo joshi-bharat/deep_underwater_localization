@@ -234,6 +234,22 @@ def get_camera_intrinsic():
 	              [0.0, 0.0, 1.0]])
 	return K
 
+def get_old_pool_intrinsics():
+	K = np.array([[569.416384877, 0.0, 354.086468692],
+	              [0.0, 569.797349037, 308.564486913],
+	              [0.0, 0.0, 1.0]])
+	return K
+
+def get_gopro_instrinsic():
+    K = np.array([2.5768e+03, 0.0, 1.8541e+03,
+                  0.0, 2.5976e+03, 1.0693e+03
+                 , 0.0, 0.0, 1.0]).astype(np.float32).reshape(3, 3)
+    return K
+
+def get_gopro_distortion():
+    dist = np.array([-0.1181, 0.1363, 5.4112e-04, -0.0047, 0.0]).astype(np.float32)
+    return dist
+
 def compute_projection(points_3D, transformation, internal_calibration):
     projections_2d = np.zeros((2, points_3D.shape[1]), dtype='float32')
     camera_projection = (internal_calibration.dot(transformation)).dot(points_3D)
@@ -241,9 +257,9 @@ def compute_projection(points_3D, transformation, internal_calibration):
     projections_2d[1, :] = camera_projection[1, :] / camera_projection[2, :]
     return projections_2d
 
-def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
-    xsi = x[selected] * width
-    ysi = y[selected] * height
+def solve_pnp(x, y, conf, gt_corners, selected, intrinsics, bestCnt=12, nV=9):
+    xsi = x[selected]
+    ysi = y[selected]
     dsi = conf[selected]
 
     gridCnt = len(xsi)
@@ -255,9 +271,9 @@ def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
 
     for i in range(candiBestCnt):
         bestGrids = dsi.argmax(axis=0)
-        validmask = dsi[bestGrids, list(range(9))] > 1.0
-        xsb = xsi[bestGrids, list(range(9))][validmask]
-        ysb = ysi[bestGrids, list(range(9))][validmask]
+        validmask = dsi[bestGrids, list(range(nV))] > 0.5
+        xsb = xsi[bestGrids, list(range(nV))][validmask]
+        ysb = ysi[bestGrids, list(range(nV))][validmask]
         t2d = np.concatenate((xsb.reshape(-1, 1), ysb.reshape(-1, 1)), 1)
         t3d = gt_corners[validmask]
         if p2d is None:
@@ -266,17 +282,12 @@ def solve_pnp(x, y, conf, gt_corners, selected, width, height, bestCnt=13):
         else:
             p2d = np.concatenate((p2d, t2d), 0)
             p3d = np.concatenate((p3d, t3d), 0)
-        dsi[bestGrids, list(range(9))] = 0
+        dsi[bestGrids, list(range(nV))] = 0
 
     if(len(p3d)) < 6:
         #will need to select the best one may be but not sure
         print("Not enough points for Ransac")
         return None, None, None
-
-    intrinsics = np.array(get_camera_intrinsic(), dtype=np.float32)
-
-    # print(p2d.shape)
-    # print(p3d.shape)
     retval, rot, trans, inliers = cv2.solvePnPRansac(p3d, p2d, intrinsics, None, flags=cv2.SOLVEPNP_EPNP)
 
     if not retval:

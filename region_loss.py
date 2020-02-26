@@ -355,7 +355,7 @@ class RegionLoss():
 
         center_xy = tf.transpose(tf.stack([mean_x, mean_y]), [1, 0])
         ref_xy = tf.tile(tf.reshape(center_xy[max_conf_idx], [1, -1]), [total_max_count, 1])
-        selected = tf.linalg.norm(center_xy - ref_xy, axis=1) < 0.2
+        selected = tf.linalg.norm(center_xy - ref_xy, axis=1) < 0.3
 
         return pred_x, pred_y, pred_conf, selected
 

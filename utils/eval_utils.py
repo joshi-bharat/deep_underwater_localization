@@ -441,11 +441,66 @@ def pnp(points_3D, points_2D, cameraMatrix):
 	# Rt = np.c_[R, t]
 	return R, t
 
-def calcAngularDistance(gt_rot, pr_rot):
+def calcAngularDistancetrace(gt_rot, pr_rot):
 
 	rotDiff = np.dot(gt_rot, np.transpose(pr_rot))
 	trace = np.trace(rotDiff)
 	return np.rad2deg(np.arccos((trace-1.0)/2.0))
+
+
+
+def euler_from_rotation_matrix(rotation_matrix):
+
+    def nonzero_sign(x):
+
+        one = np.ones_like(x)
+        return np.where(np.greater_equal(x, 0.0), one, -one)
+
+    def general_case(rotation_matrix, r20, eps_addition):
+        """Handles the general case."""
+        theta_y = -np.arcsin(r20)
+        sign_cos_theta_y = nonzero_sign(np.cos(theta_y))
+        r00 = rotation_matrix[..., 0, 0]
+        r10 = rotation_matrix[..., 1, 0]
+        r21 = rotation_matrix[..., 2, 1]
+        r22 = rotation_matrix[..., 2, 2]
+        r00 = nonzero_sign(r00) * eps_addition + r00
+        r22 = nonzero_sign(r22) * eps_addition + r22
+        # cos_theta_y evaluates to 0 on Gimbal locks, in which case the output of
+        # this function will not be used.
+        theta_z = np.arctan2(r10 * sign_cos_theta_y, r00 * sign_cos_theta_y)
+        theta_x = np.arctan2(r21 * sign_cos_theta_y, r22 * sign_cos_theta_y)
+        angles = np.stack((theta_x, theta_y, theta_z), axis=-1)
+        return angles
+
+    def gimbal_lock(rotation_matrix, r20, eps_addition):
+        """Handles Gimbal locks."""
+        r01 = rotation_matrix[..., 0, 1]
+        r02 = rotation_matrix[..., 0, 2]
+        sign_r20 = nonzero_sign(r20)
+        r02 = nonzero_sign(r02) * eps_addition + r02
+        theta_x = np.arctan2(-sign_r20 * r01, -sign_r20 * r02)
+        theta_y = -sign_r20 * np.array(math.pi / 2.0, dtype=r20.dtype)
+        theta_z = np.zeros_like(theta_x)
+        angles = np.stack((theta_x, theta_y, theta_z), axis=-1)
+        return angles
+
+    r20 = rotation_matrix[ 2, 0]
+    eps_addition = 2.0 * 1e-10
+    general_solution = general_case(rotation_matrix, r20, eps_addition)
+    gimbal_solution = gimbal_lock(rotation_matrix, r20, eps_addition)
+    is_gimbal = np.equal(np.abs(r20), 1)
+    gimbal_mask = np.stack((is_gimbal, is_gimbal, is_gimbal), axis=-1)
+    return np.where(gimbal_mask, gimbal_solution, general_solution)
+
+
+def calcAngularDistance(gt_rot, pr_rot):
+    pr_eul = euler_from_rotation_matrix(np.array(pr_rot).astype(np.float32))
+    gt_eul = euler_from_rotation_matrix(np.array(gt_rot).astype(np.float32))
+
+    diff = np.rad2deg(np.abs(pr_eul - gt_eul))
+    # avgdiff = np.average(diff)
+    return diff
 
 def compute_transformation(points_3D, transformation):
 	return transformation.dot(points_3D)
