@@ -65,3 +65,13 @@ __pycache__/
 data/darknet_weights/*
 data/logs/*
 
+#other files
+create_corner8_dataset_from_orig.py
+create_dataset.py
+eval.py
+final_tf_train_corners.
+gt.txt
+inference.py
+test_eager.py
+test_virtual_data.py
+video_test.py
