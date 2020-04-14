@@ -75,3 +75,4 @@ inference.py
 test_eager.py
 test_virtual_data.py
 video_test.py
+checkpoint/*

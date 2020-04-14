@@ -7,8 +7,8 @@ from utils.misc_utils import parse_anchors, read_class_names
 import math
 
 ### Some paths
-#train_file = '/home/bjoshi/singleshotv3-tf/final_tf_train.txt'  # The path of the training txt file.
-train_file = '/media/bjoshi/ssd-data/deepcl-data/cyclegan_synth/final_tf_train.txt'
+
+train_file = '/media/bjoshi/ssd-data/synthetic/train_small.txt' # The path of the training txt file.
 val_file = '/home/afrl/singleshotv3-tf/data/my_data/train.txt'  # The path of the validation txt file.
 restore_path = './data/darknet_weights/yolov3.ckpt'  # The path of the weights to restore.
 save_dir = './checkpoint/'  # The directory of the weights to save.
@@ -21,10 +21,10 @@ class_name_path = './data/aqua.names'  # The path of the class names.
 batch_size = 4
 img_size = [416, 416]  # Images will be resized to `img_size` and fed to the network, size format: [width, height]
 letterbox_resize = True  # Whether to use the letterbox resize, i.e., keep the original aspect ratio in the resized image.
-total_epoches = 25
-train_evaluation_step = 100  # Evaluate on the training batch after some steps.
-val_evaluation_epoch = 2  # Evaluate on the whole validation dataset after some epochs. Set to None to evaluate every epoch.
-save_epoch = 2  # Save the model after some epochs.
+total_epoches = 125
+print_step = 100  # Print the losses
+#val_evaluation_epoch = 2  # Evaluate on the whole validation dataset after some epochs. Set to None to evaluate every epoch.
+save_epoch = 5  # Save the model after some epochs.
 batch_norm_decay = 0.99  # decay in bn ops
 weight_decay = 5e-4  # l2 weight decay
 global_step = 0  # used when resuming training
@@ -42,7 +42,7 @@ lr_decay_epoch = 5  # Epochs after which learning rate decays. Int or float. Use
 lr_decay_factor = 0.96  # The learning rate decay factor. Used when chosen `exponential` lr_type.
 lr_lower_bound = 1e-6  # The minimum learning rate.
 # only used in piecewise lr type
-pw_boundaries = [30, 50]  # epoch based boundaries
+pw_boundaries = [60, 100]  # epoch based boundaries
 pw_values = [learning_rate_init, 3e-5, 1e-5]
 
 ### Load and finetune

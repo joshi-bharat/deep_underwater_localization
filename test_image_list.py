@@ -18,7 +18,7 @@ from utils.data_utils import letterbox_resize
 
 from model import yolov3
 from tqdm import tqdm
-from region_loss import RegionLoss
+from pose_loss import RegionLoss
 
 from utils.meshply import MeshPly
 
