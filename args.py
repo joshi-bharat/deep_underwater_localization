@@ -9,7 +9,6 @@ import math
 ### Some paths
 
 train_file = '/media/bjoshi/ssd-data/synthetic/train_small.txt' # The path of the training txt file.
-val_file = '/home/afrl/singleshotv3-tf/data/my_data/train.txt'  # The path of the validation txt file.
 restore_path = './data/darknet_weights/yolov3.ckpt'  # The path of the weights to restore.
 save_dir = './checkpoint/'  # The directory of the weights to save.
 log_dir = './data/logs/'  # The directory to store the tensorboard log files.
@@ -23,7 +22,6 @@ img_size = [416, 416]  # Images will be resized to `img_size` and fed to the net
 letterbox_resize = True  # Whether to use the letterbox resize, i.e., keep the original aspect ratio in the resized image.
 total_epoches = 125
 print_step = 100  # Print the losses
-#val_evaluation_epoch = 2  # Evaluate on the whole validation dataset after some epochs. Set to None to evaluate every epoch.
 save_epoch = 5  # Save the model after some epochs.
 batch_norm_decay = 0.99  # decay in bn ops
 weight_decay = 5e-4  # l2 weight decay
@@ -50,17 +48,17 @@ pw_values = [learning_rate_init, 3e-5, 1e-5]
 # restore_include: None, restore_exclude: None  => restore the whole model
 # restore_include: None, restore_exclude: scope  => restore the whole model except `scope`
 # restore_include: scope1, restore_exclude: scope2  => if scope1 contains scope2, restore scope1 and not restore scope2 (scope1 - scope2)
-# choise 1: only restore the darknet body
+# choice 1: only restore the darknet body
 # restore_include = ['yolov3/darknet53_body']
 # restore_exclude = None
-# choise 2: restore all layers except the last 3 conv2d layers in 3 scale
+# choice 2: restore all layers except the last 3 conv2d layers in 3 scale
 restore_include = None
 restore_exclude = ['yolov3/yolov3_head/Conv_14', 'yolov3/yolov3_head/Conv_6', 'yolov3/yolov3_head/Conv_22', 'yolov3/yolov3_head_singleshot']
 # Choose the parts you want to finetune. List form.
 # Set to None to train the whole model.
 # update_part = ['yolov3/yolov3_head_singleshot']
 # update_part = ['yolov3/yolov3_head',  'yolov3/yolov3_head_singleshot']
-update_part = None
+update_part = None #update all the weights even the backbone darknet
 ### other training strategies
 multi_scale_train = True  # Whether to apply multi-scale training strategy. Image size varies from [320, 320] to [640, 640] by default.
 use_label_smooth = True # Whether to use class label smoothing strategy.
@@ -69,14 +67,11 @@ use_mix_up = True  # Whether to use mix up data augmentation strategy.
 use_warm_up = True  # whether to use warm up strategy to prevent from gradient exploding.
 warm_up_epoch = 3  # Warm up training epoches. Set to a larger value if gradient explodes.
 
-### some constants in validation
+## Some constants
 # nms
 nms_threshold = 0.45  # iou threshold in nms operation
 score_threshold = 0.01  # threshold of the probability of the classes in nms operation, i.e. score = pred_confs * pred_probs. set lower for higher recall.
 nms_topk = 150  # keep at most nms_topk outputs after nms
-# mAP eval
-eval_threshold = 0.5  # the iou threshold applied in mAP evaluation
-use_voc_07_metric = False  # whether to use voc 2007 evaluation metric, i.e. the 11-point metric
 
 ### parse some params
 anchors = parse_anchors(anchor_path)
@@ -89,6 +84,7 @@ train_batch_num = int(math.floor(float(train_img_cnt) / batch_size))
 lr_decay_freq = int(train_batch_num * lr_decay_epoch)
 pw_boundaries = [float(i) * train_batch_num + global_step for i in pw_boundaries]
 
-#Memsh
-mesh_path = '/home/bjoshi/singleshotv3-tf/aqua_glass_removed.ply'
-nV = 8
+#Mesh
+mesh_path = '/home/bjoshi/singleshotv3-tf/aqua_glass_removed.ply' #3D object model
+nV = 8      #number of corners used
+            # You can use 8 corners or include the centroid as well and make 9 corners

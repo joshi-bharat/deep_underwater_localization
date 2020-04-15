@@ -241,13 +241,13 @@ def get_old_pool_intrinsics():
 	return K
 
 def get_gopro_instrinsic():
-    K = np.array([2.5768e+03, 0.0, 1.8541e+03,
-                  0.0, 2.5976e+03, 1.0693e+03
+    K = np.array([2586.879545, 0.0, 1872.584540,
+                  0.0, 2608.959850, 1076.479199
                  , 0.0, 0.0, 1.0]).astype(np.float32).reshape(3, 3)
     return K
 
 def get_gopro_distortion():
-    dist = np.array([-0.1181, 0.1363, 5.4112e-04, -0.0047, 0.0]).astype(np.float32)
+    dist = np.array([-0.104073, 0.112306, 0.000425, -0.004504, 0.0]).astype(np.float32)
     return dist
 
 def compute_projection(points_3D, transformation, internal_calibration):

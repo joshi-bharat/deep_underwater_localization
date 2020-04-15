@@ -11,31 +11,30 @@ import logging
 import time
 
 from utils.misc_utils import *
-from utils.nms_utils import gpu_nms
-from utils.plot_utils import get_color_table, plot_one_box, draw_demo_img, draw_demo_img_corners
+from utils.plot_utils import get_color_table, plot_one_box, draw_demo_img_corners
 from utils.eval_utils import *
 from utils.data_utils import letterbox_resize
 
 from model import yolov3
 from tqdm import tqdm
-from pose_loss import RegionLoss
+from pose_loss import PoseRegressionLoss
 
 from utils.meshply import MeshPly
 
-parser = argparse.ArgumentParser(description="YOLO-V3 test single image test procedure.")
+parser = argparse.ArgumentParser(description="DeepURL test image list procedure.")
 parser.add_argument("--image_list", type=str,
-                    help="The path of the input image.", default='/media/bjoshi/ssd-data/pool/test.txt')
+                    help="The path of the input image.", default='/media/bjoshi/ssd-data/pool/all_test.txt')
 parser.add_argument("--anchor_path", type=str, default="./data/yolo_anchors.txt",
                     help="The path of the anchor txt file.")
 parser.add_argument("--new_size", nargs='*', type=int, default=[416, 416],
                     help="Resize the input image with `new_size`, size format: [width, height]")
 parser.add_argument("--class_name_path", type=str, default="./data/aqua.names",
                     help="The path of the class names.")
-parser.add_argument("--checkpoint_dir", type=str, default="/home/bjoshi/singleshotv3-tf/checkpoint_real",
+parser.add_argument("--checkpoint_dir", type=str, default="/home/bjoshi/deep_localization/checkpoint",
                     help="The path of the weights to restore.")
 parser.add_argument("--save_video", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Whether to save the video detection results.")
-parser.add_argument("--mesh_path", type=str, default='/home/bjoshi/singleshotv3-tf/aqua_glass_removed.ply',
+parser.add_argument("--mesh_path", type=str, default='aqua_glass_removed.ply',
                     help="Aqua Mesh Model")
 parser.add_argument("--use_gt", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Whether to use ground truth to calculate error.")
@@ -78,13 +77,13 @@ intrinsics = get_camera_intrinsic()
 # intrinsics = get_old_pool_intrinsics()
 with tf.Session(config=config) as sess:
     input_data = tf.placeholder(tf.float32, [1, args.new_size[1], args.new_size[0], 3], name='input_data')
-    region_loss = RegionLoss(1, num_classes=1, nV=args.nV)
+    pose_loss = PoseRegressionLoss(1, num_classes=1, nV=args.nV)
 
     yolo_model = yolov3(args.num_class, args.anchors, nV=args.nV)
     with tf.variable_scope('yolov3'):
         pred_feature_maps = yolo_model.forward(input_data, False)
     yolo_features = [pred_feature_maps[0], pred_feature_maps[1], pred_feature_maps[2]]
-    region_features = [pred_feature_maps[3], pred_feature_maps[4], pred_feature_maps[5]]
+    pose_features = [pred_feature_maps[3], pred_feature_maps[4], pred_feature_maps[5]]
 
 
     pred_boxes, pred_confs, pred_probs = yolo_model.predict(yolo_features)
@@ -94,7 +93,7 @@ with tf.Session(config=config) as sess:
     boxes, scores, labels = gpu_nms(pred_boxes, pred_scores, args.num_class, max_boxes=1, score_thresh=0.25,
                                     nms_thresh=0.35)
 
-    x, y, conf, selected = region_loss.predict(region_features,  boxes, scores, num_classes=1)
+    x, y, conf, selected = pose_loss.predict(pose_features,  boxes, scores, num_classes=1)
 
     saver = tf.train.Saver()
     checkpoint = tf.train.latest_checkpoint(args.checkpoint_dir)
@@ -119,13 +118,14 @@ with tf.Session(config=config) as sess:
     count = 0
     error_count = 0
 
-    error_file = open('error.txt', 'w')
-    error_file.write("filename translation translation_error \n")
     for line in tqdm(lines):
         line = line.strip()
-        # print(line)
-        img_ori = cv2.imread(line)
-        # print(line)
+        line_arr = line.split(' ')
+        filename = line_arr[1]
+
+
+        img_ori = cv2.imread(filename)
+        # print(filename)
         img_ori = cv2.resize(img_ori, (width, height))
 
         # cv2.imshow('Image', img_ori)
@@ -150,10 +150,10 @@ with tf.Session(config=config) as sess:
             x_ = x_ * args.new_size[0]
             y_ = y_ * args.new_size[1]
 
-        # if len(boxes_) == 0:
-        #     print('No bounding box detected')
-        #     error_count += 1
-        #     continue
+        if len(boxes_) == 0:
+            print('No bounding box detected')
+            error_count += 1
+            continue
 
         rot, trans, transform = solve_pnp(x_, y_, conf_, ref_corners, selected_, intrinsics, nV=args.nV)
         if transform is not None:
@@ -173,72 +173,67 @@ with tf.Session(config=config) as sess:
                 # cv2.waitKey(0)
             except:
                 print("Something went wrong")
+
             if args.use_gt:
-                label_file = line.replace('images', 'labels').replace('.png', '.txt').replace(
-				'.jpg', '.txt').replace('.jpeg', '.txt').strip()
-                if os.path.isfile(label_file):
-                    target = open(label_file, 'r').readline().split(' ')
-                    target = [float(x) for x in target]
-                    box_gt = np.array(target[3:19]).reshape(args.nV, 2)
-                    box_gt[:, 0] = box_gt[:, 0] * width
-                    box_gt[:, 1] = box_gt[:, 1] * height
+                # label_file = filename.replace('images', 'labels').replace('.png', '.txt').replace(
+				# '.jpg', '.txt').replace('.jpeg', '.txt').strip()
+                # if os.path.isfile(label_file):
+                target = line_arr[5:args.nV*2+5]
+                target = [float(x) for x in target]
+                box_gt = np.array(target).reshape(args.nV, 2)
+                # box_gt[:, 0] = box_gt[:, 0] * width
+                # box_gt[:, 1] = box_gt[:, 1] * height
+                # print(box_gt)
+                img_ori = draw_demo_img_corners(img_ori, box_gt, (0, 255, 0), nV=8)
+                # Compute [R|t] by pnp
+                R_gt, t_gt = pnp(
+                    np.array(ref_corners, dtype='float32'), box_gt, np.array(intrinsics, dtype='float32'))
 
-                    img_ori = draw_demo_img_corners(img_ori, box_gt, (0, 255, 0), nV=8)
-                    # Compute [R|t] by pnp
-                    R_gt, t_gt = pnp(
-                        np.array(ref_corners, dtype='float32'), box_gt, np.array(intrinsics, dtype='float32'))
+                # Compute translation error
+                trans_dist = np.sqrt(np.sum(np.square(t_gt - trans)))
 
-                    # Compute translation error
-                    trans_dist = np.sqrt(np.sum(np.square(t_gt - trans)))
+                corner_norm = np.linalg.norm(box_gt - corners2D_pr, axis=1)
+                corner_dist = np.mean(corner_norm)
+                errs_corner2D.append(corner_dist)
 
-                    corner_norm = np.linalg.norm(box_gt - corners2D_pr, axis=1)
-                    corner_dist = np.mean(corner_norm)
-                    errs_corner2D.append(corner_dist)
-
-                    # if corner_dist > 100:
-                    #     print('More than 100 reprojection error')
-                    #     error_count += 1
-                    #     continue
-
-                    errs_trans.append(trans_dist)
-
-                    # Compute angle error
-                    angle_dist = calcAngularDistancetrace(R_gt, rot)
-                    errs_angle.append(angle_dist)
-
-                    indiv_angles = calcAngularDistance(R_gt, rot)
-                    roll_err += indiv_angles[0]
-                    pitch_err += indiv_angles[1]
-                    yaw_err += indiv_angles[2]
-
-                    # Compute pixel error
-                    Rt_gt = np.concatenate((R_gt, t_gt), axis=1)
-                    Rt_pr = np.concatenate((rot, trans), axis=1)
-                    proj_2d_gt = compute_projection(vertices, Rt_gt, intrinsics)
-                    proj_2d_pred = compute_projection(vertices, Rt_pr, intrinsics)
-                    norm = np.linalg.norm(proj_2d_gt - proj_2d_pred, axis=0)
-                    pixel_dist = np.mean(norm)
-                    errs_2d.append(pixel_dist)
-
-                    # print('Pixel Dist: ', pixel_dist)
-
-                    # Compute 3D distances
-                    transform_3d_gt = compute_transformation(vertices, Rt_gt)
-                    transform_3d_pred = compute_transformation(vertices, Rt_pr)
-                    norm3d = np.linalg.norm(transform_3d_gt - transform_3d_pred, axis=0)
-                    vertex_dist = np.mean(norm3d)
-                    errs_3d.append(vertex_dist)
-
-                    # Sum errors
-                    error_file.write('%s %f %f %f %f\n' % (line, trans[0], trans[1], trans[2], trans_dist))
-
-                    testing_error_trans += trans_dist
-                    testing_error_angle += angle_dist
-                    testing_error_pixel += pixel_dist
-                    count = count + 1
-                else:
-                    print(' No label for this image')
+                if corner_dist > 100:
+                    print('More than 100 reprojection error')
+                    error_count += 1
                     continue
+
+                errs_trans.append(trans_dist)
+
+                # Compute angle error
+                angle_dist = calcAngularDistancetrace(R_gt, rot)
+                errs_angle.append(angle_dist)
+
+                indiv_angles = calcAngularDistance(R_gt, rot)
+                roll_err += indiv_angles[0]
+                pitch_err += indiv_angles[1]
+                yaw_err += indiv_angles[2]
+
+                # Compute pixel error
+                Rt_gt = np.concatenate((R_gt, t_gt), axis=1)
+                Rt_pr = np.concatenate((rot, trans), axis=1)
+                proj_2d_gt = compute_projection(vertices, Rt_gt, intrinsics)
+                proj_2d_pred = compute_projection(vertices, Rt_pr, intrinsics)
+                norm = np.linalg.norm(proj_2d_gt - proj_2d_pred, axis=0)
+                pixel_dist = np.mean(norm)
+                errs_2d.append(pixel_dist)
+
+                # print('Pixel Dist: ', pixel_dist)
+
+                # Compute 3D distances
+                transform_3d_gt = compute_transformation(vertices, Rt_gt)
+                transform_3d_pred = compute_transformation(vertices, Rt_pr)
+                norm3d = np.linalg.norm(transform_3d_gt - transform_3d_pred, axis=0)
+                vertex_dist = np.mean(norm3d)
+                errs_3d.append(vertex_dist)
+
+                testing_error_trans += trans_dist
+                testing_error_angle += angle_dist
+                testing_error_pixel += pixel_dist
+                count = count + 1
 
         else:
             error_count += 1
@@ -281,25 +276,25 @@ if args.use_gt:
     mean_err_2d = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
 
-# Print test statistics
-logging.error('Correct Predictions: %d' % len(errs_2d))
-logging.error('Results of {}'.format('Aqua'))
-logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(px_threshold, acc))
-logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(15, acc15))
-logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(20, acc20))
+    # Print test statistics
+    logging.error('Correct Predictions: %d' % len(errs_2d))
+    logging.error('Results of {}'.format('Aqua'))
+    logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(px_threshold, acc))
+    logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(15, acc15))
+    logging.error('   Acc using {} px 2D Projection = {:.4f}%'.format(20, acc20))
 
-logging.error('   Acc using 10% threshold - {} vx 3D Transformation = {:.4f}%'.format(diam * 0.1, acc3d10))
-logging.error('   Acc using 5 cm 5 degree metric = {:.4f}%'.format(acc5cm5deg))
-logging.error("   Mean 2D pixel error is %f, Mean vertex error is %f, mean corner error is %f" % (
-    mean_err_2d, np.mean(errs_3d), mean_corner_err_2d))
-logging.error('   Translation error: %f m, angle error: %f degree, pixel error: % f pix' % (
-    testing_error_trans / count, testing_error_angle / count, testing_error_pixel / count))
-logging.error('Correct prediction: %f' % (count/len(lines)))
-logging.error('Roll error: %f' % (roll_err/count))
-logging.error('Pitch error: %f' % (pitch_err/count))
-logging.error('Yaw error: %f' % (yaw_err/count))
+    logging.error('   Acc using 10% threshold - {} vx 3D Transformation = {:.4f}%'.format(diam * 0.1, acc3d10))
+    logging.error('   Acc using 5 cm 5 degree metric = {:.4f}%'.format(acc5cm5deg))
+    logging.error("   Mean 2D pixel error is %f, Mean vertex error is %f, mean corner error is %f" % (
+        mean_err_2d, np.mean(errs_3d), mean_corner_err_2d))
+    logging.error('   Translation error: %f m, angle error: %f degree, pixel error: % f pix' % (
+        testing_error_trans / count, testing_error_angle / count, testing_error_pixel / count))
+    logging.error('Correct prediction: %f' % (count/len(lines)))
+    logging.error('Roll error: %f' % (roll_err/count))
+    logging.error('Pitch error: %f' % (pitch_err/count))
+    logging.error('Yaw error: %f' % (yaw_err/count))
 
-print('Total errors: ', error_count)
+    print('Total errors: ', error_count)
 
 if args.save_video:
     videoWriter.release()
