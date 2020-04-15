@@ -23,7 +23,7 @@ from utils.meshply import MeshPly
 
 parser = argparse.ArgumentParser(description="DeepURL test image list procedure.")
 parser.add_argument("--image_list", type=str,
-                    help="The path of the input image.", default='/media/bjoshi/ssd-data/pool/all_test.txt')
+                    help="The path of the input image.", default='./data/my_data/pool_test.txt')
 parser.add_argument("--anchor_path", type=str, default="./data/yolo_anchors.txt",
                     help="The path of the anchor txt file.")
 parser.add_argument("--new_size", nargs='*', type=int, default=[416, 416],

@@ -8,7 +8,7 @@ import math
 
 ### Some paths
 
-train_file = '/media/bjoshi/ssd-data/synthetic/train_small.txt' # The path of the training txt file.
+train_file = './data/my_data/final_train.txt' # The path of the training txt file.
 restore_path = './data/darknet_weights/yolov3.ckpt'  # The path of the weights to restore.
 save_dir = './checkpoint/'  # The directory of the weights to save.
 log_dir = './data/logs/'  # The directory to store the tensorboard log files.

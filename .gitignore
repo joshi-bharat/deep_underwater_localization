@@ -78,3 +78,5 @@ video_test.py
 test.py
 checkpoint*
 *.mp4
+final_tf_train.txt
+final_tf_train_corners.txt

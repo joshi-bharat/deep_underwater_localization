@@ -1,1 +1,0 @@
-0 /home/bjoshi/deepcl-data/cyclegan_synth/images/1.png 800 600 0 248 161 513 485
