@@ -21,3 +21,13 @@ If you find DeepURL useful in your research, please consider citing:
         year={2020},
         archivePrefix={arXiv}
     }
+    
+### Installation
+
+* Python 3
+* Install [Tensorflow](https://www.tensorflow.org/install/pip) >= 1.8.0
+* Numpy
+* tqdm
+* opencv-python
+
+Requirements
