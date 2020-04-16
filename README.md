@@ -35,11 +35,16 @@ If you find DeepURL useful in your research, please consider citing:
 ### Running Demo
 
 ### Training
-<span style="color:blue">*DeepURL only supports one object class until now*</span>
+*Note: DeepURL only supports one object class until now*
 
 Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0).
 
 Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
 Download the synthetic dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
-and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in
+and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in the training file represents each image
+in the format like `image_index image_absolute_path img_width img_height label_index 2D_bounding_box 3D_keypoint_projection`.
+2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
+the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. For future work, projections of 
+3D Aqua center are also appended at the end. The number of corners/kepypoints to be used can be controlled through nV in [args.py](args.py).
+  
