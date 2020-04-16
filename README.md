@@ -56,8 +56,9 @@ To train change the absolute path of images to the directory where you downloade
 
 Please refer to this [link](label_file_creation.md) for a detailed explanation on how to create labels for your own dataset.
 
+Start the training
 ```shell script
 python train.py
 ```  
-For future work, projections of 3D Aqua center are also appended at the end. Change nV to 9 in [args.py](args.py) 
-if you want to use center of object as keypoint for training.
+Refer to [args.py](args.py) to make changes to parameters. For future work, projections of 3D Aqua center are also appended at the end.
+Change nV to 9 in [args.py](args.py) if you want to use center of object as keypoint for training.
