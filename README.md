@@ -12,5 +12,11 @@ corners  of  the  3D  model  of  the  AUV,  and  then  the  6D pose in the camer
 
 [![Click on Image for Deep URL YouTube Video ](./images/deepcl_pipeline.png)](https://www.youtube.com/watch?v=gh6iDQmETaM)
 
-
 ### Citation
+If you find DeepURL useful in your research, please consider citing:
+    @misc{joshi2020deepurl,
+        title={DeepURL: Deep Pose Estimation Framework for Underwater Relative Localization},
+        author={Bharat Joshi and Md Modasshir and Travis Manderson and Hunter Damron and Marios Xanthidis and Alberto Quattrini Li and Ioannis Rekleitis and Gregory Dudek},
+        year={2020},
+        archivePrefix={arXiv}
+    }
