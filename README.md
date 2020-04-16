@@ -33,11 +33,16 @@ If you find DeepURL useful in your research, please consider citing:
 * Cuda Toolkit 10.0
 
 ### Running Demo
-
+There are some images from  Pool Dataset under `./data/demo_data`. You can run the demo on single image by
+1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
+from [[GitHub Release ]]((https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
+2. 
 ### Training
 *Note: DeepURL only supports one object class until now*
 
-1. Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0). Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
+1. Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]]
+(https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0). 
+Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
 2. Download the synthetic - `synthetic.zip` dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
 and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in the training file represents each image
