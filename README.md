@@ -98,3 +98,8 @@ from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releas
     python test_video.py --test_video path_to_downloaded_test_video --checkpoint_dir path_to_extracted_checkpoint
     ```
 
+### Acknowledgments
+This code is built on [YOLOv3 implementation](https://github.com/wizyoung/YOLOv3_TensorFlow) of github user [@wizyoung](https://github.com/wizyoung).
+
+###  Contact
+For any help, enquiries and comments, please contact me at `bjoshi@email.sc.edu`. 
