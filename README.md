@@ -32,13 +32,15 @@ If you find DeepURL useful in your research, please consider citing:
 * python 3.7.6
 * Cuda Toolkit 10.0
 
-### Running Demo
+### Running Demo on Single Image
 There are some images from  Pool Dataset under `./data/demo_data`. You can run the demo on single image by
 1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
 from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
 2. ```shell script
    python test_single_image.py --input_image data/demo_data/1537054379109932699.jpeg --checkpoint_dir path_to_extracted_checkpoint
    ```
+Sample Result:
+![](data/demo_data/deepurl_result_1537054428126852399.jpeg)
 ### Training
 *Note: DeepURL only supports one object class until now*
 
@@ -66,3 +68,5 @@ the projections of 8 corners of Aqua (any other object you want to use) 3D objec
     ```  
     The hyper-parameters and the corresponding annotations can be found in [args.py](args.py). For future work, projections of 3D Aqua center are also appended at the end.
     Change nV to 9 in [args.py](args.py) if you want to use center of object as keypoint for training.
+
+### Testing on Pool Dataset
