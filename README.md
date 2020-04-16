@@ -60,5 +60,5 @@ Start the training
 ```shell script
 python train.py
 ```  
-Refer to [args.py](args.py) to make changes to parameters. For future work, projections of 3D Aqua center are also appended at the end.
+The hyper-parameters and the corresponding annotations can be found in [args.py](args.py). For future work, projections of 3D Aqua center are also appended at the end.
 Change nV to 9 in [args.py](args.py) if you want to use center of object as keypoint for training.
