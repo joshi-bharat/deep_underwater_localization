@@ -30,4 +30,15 @@ If you find DeepURL useful in your research, please consider citing:
 * tqdm
 * opencv-python
 
-Requirements
+**Requirements**
+* Ubuntu 16.04 or later (64-bit)
+* Python 3.5 - 3.7
+* Tensorflow >= 1.8.0
+
+**Tested on**
+* Ubuntu 18.04
+* Tensorflow 1.15.0
+* python 3.7.6
+* Cuda Toolkit 10.0
+
+
