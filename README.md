@@ -3,7 +3,7 @@ Source Code for the paper  **DeepURL: Deep Pose Estimation Framework for Underwa
 submitted to IROS 2020. [[Paper]](https://arxiv.org/abs/2003.05523)
 
 ### Introduction
-we propose a real-time deep-learning approach for determining the 6D relative pose of Autonomous Underwater  Vehicles (AUV) from single image. 
+We propose a real-time deep-learning approach for determining the 6D relative pose of Autonomous Underwater  Vehicles (AUV) from single image. 
 Due  to  the  pro-found difficulty of collecting ground truth images with accurate 6D poses underwater, this work utilizes 
 rendered images from the  Unreal  Game  Engine  simulation  for  training.  An  image translation  network  is  employed  to
 bridge  the  gap  between the  rendered  and  the  real  images  producing  synthetic  images for  training.  The  proposed
