@@ -11,8 +11,6 @@ method  predicts  the  6D  pose  of  an AUV  from  a  single  image  as 2D  imag
 corners  of  the  3D  model  of  the  AUV,  and  then  the  6D pose in the camera coordinates is determined using RANSAC-based  PnP. 
 
 ![](./images/deepcl_pipeline.png)
-<div>
 <iframe src="https://www.youtube.com/embed/gh6iDQmETaM"> </iframe>
-</div>
 
 ### Citation
