@@ -45,14 +45,14 @@ in the format like `image_index image_absolute_path img_width img_height label_i
 2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
 the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. 
 
-For example:
-```
-0 xxx/xxx/45162.png 800 600 0 445 64 571 234 505 151 519 243 546 227 555 209 586 191 440 119 466 105 458 61 489 44
-1 xxx/xxx/3621.png 800 600 0 194 181 560 475 400 300 356 509 305 417 207 422 166 358 620 243 602 169 442 245 422 191
-```
-To train change the absolute path of images to the directory where you downloaded and extracted the synthetic dataset.
+    For example:
+    ```
+    0 xxx/xxx/45162.png 800 600 0 445 64 571 234 505 151 519 243 546 227 555 209 586 191 440 119 466 105 458 61 489 44
+    1 xxx/xxx/3621.png 800 600 0 194 181 560 475 400 300 356 509 305 417 207 422 166 358 620 243 602 169 442 245 422 191
+    ```
+    To train change the absolute path of images to the directory where you downloaded and extracted the synthetic dataset.
 
-Please refer to this [link](label_file_creation.md) for a detailed explanation on how to create labels for your own dataset.
+    Please refer to this [link](label_file_creation.md) for a detailed explanation on how to create labels for your own dataset.
 
 3. Start the training
 ```shell script
