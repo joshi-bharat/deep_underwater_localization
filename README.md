@@ -1,5 +1,6 @@
 ## DeepURL: Deep Pose Estimation Framework for Underwater Relative Localization
-Source Code for the paper  **DeepURL: Deep Pose Estimation Framework for Underwater Relative Localization**,[arxiv](https://arxiv.org/abs/2003.05523), submitted to [IROS 2020](http://www.iros2020.org/)
+Source Code for the paper  **DeepURL: Deep Pose Estimation Framework for Underwater Relative Localization**, 
+submitted to IROS 2020. [[Paper]](https://arxiv.org/abs/2003.05523)
 
 ### Introduction
 we propose a real-time deep-learning approach for determining the 6D relative pose of Autonomous Underwater  Vehicles (AUV) from single image. 
