@@ -37,11 +37,9 @@ If you find DeepURL useful in your research, please consider citing:
 ### Training
 *Note: DeepURL only supports one object class until now*
 
-Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0).
+1. Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0). Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
-Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
-
-Download the synthetic - `synthetic.zip` dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
+2. Download the synthetic - `synthetic.zip` dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
 and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in the training file represents each image
 in the format like `image_index image_absolute_path img_width img_height label_index 2D_bounding_box 3D_keypoint_projection`.
 2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
@@ -56,7 +54,7 @@ To train change the absolute path of images to the directory where you downloade
 
 Please refer to this [link](label_file_creation.md) for a detailed explanation on how to create labels for your own dataset.
 
-Start the training
+3. Start the training
 ```shell script
 python train.py
 ```  
