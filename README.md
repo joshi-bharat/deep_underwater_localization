@@ -41,13 +41,19 @@ Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint
 
 Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
-Download the synthetic dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
+Download the synthetic - `synthetic.zip` dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
 and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in the training file represents each image
 in the format like `image_index image_absolute_path img_width img_height label_index 2D_bounding_box 3D_keypoint_projection`.
 2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
 the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. 
-
+For example:
+```
+0 xxx/xxx/45162.png 800 600 0 445 64 571 234 505 151 519 243 546 227 555 209 586 191 440 119 466 105 458 61 489 44
+1 xxx/xxx/3621.png 800 600 0 194 181 560 475 400 300 356 509 305 417 207 422 166 358 620 243 602 169 442 
+```
+To train change the absolute path of images to the directory where you dowloaded and extracted the synthetic dataset.
+ 
 For future work, projections of 3D Aqua center are also appended at the end. Change nV to 9 in [args.py](args.py) 
-if you want to use center of object as keypoint as well.
+if you want to use center of object as keypoint for training.
 
   
