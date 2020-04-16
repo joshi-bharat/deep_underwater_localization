@@ -46,5 +46,5 @@ and extract them. The training file is available as `.data/my_data/final_train.t
 in the format like `image_index image_absolute_path img_width img_height label_index 2D_bounding_box 3D_keypoint_projection`.
 2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
 the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. For future work, projections of 
-3D Aqua center are also appended at the end. The number of corners/kepypoints to be used can be controlled through nV in [args.py](args.py).
+3D Aqua center are also appended at the end. Change nV to 9 in [args.py](args.py) if you want to use center of object as keypoint.
   
