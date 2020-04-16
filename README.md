@@ -41,7 +41,7 @@ from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/relea
    ```
 Sample Result:
 
-![](data/demo_data/deepurl_result_1537054428126852399.jpeg)
+![](https://github.com/joshi-bharat/deep_underwater_localization/blob/master/data/demo_data/deepurl_result_1537054428126852399.jpeg?s=400)
 ### Training
 *Note: DeepURL only supports one object class until now*
 
