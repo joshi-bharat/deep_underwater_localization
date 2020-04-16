@@ -35,7 +35,7 @@ If you find DeepURL useful in your research, please consider citing:
 ### Running Demo on Single Image
 There are some images from  Pool Dataset under `./data/demo_data`. You can run the demo on single image by
 1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
-from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
+from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
 2. ```shell script
    python test_single_image.py --input_image data/demo_data/1537054379109932699.jpeg --checkpoint_dir path_to_extracted_checkpoint
    ```
@@ -46,7 +46,7 @@ Sample Result:
 ### Training
 *Note: DeepURL only supports one object class until now*
 
-1. Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0). 
+1. Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0). 
 Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
 2. Download the synthetic dataset - `synthetic.zip` obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
@@ -73,7 +73,7 @@ the projections of 8 corners of Aqua (any other object you want to use) 3D objec
 
 ### Testing on Pool Dataset
 1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
-from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
+from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
 
 2. Download the pool dataset - `pool.zip` from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
 and extract them. The testing file is available as `./data/my_data/pool_test.txt`. Each line in the training file represents each image
@@ -86,3 +86,8 @@ in the format like `image_index image_absolute_path img_width img_height label_i
    1 xxx/xxx/1536966073192620099.jpeg 800 600 0 590 385 593 336 400 407 392 361 523 260 522 222 389 279 384 242 385 593
     ```
     To test on pool dataset, change the `image_absolute_path` to the directory where you downloaded and extracted the pool dataset.
+3. Start testing
+    ```shell script
+    python test_image_list.py --image_list data/my_data/pool_test.txt
+    ```
+### Demo on GoPro Video
