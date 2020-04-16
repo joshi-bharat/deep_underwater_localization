@@ -11,8 +11,3 @@ method  predicts  the  6D  pose  of  an AUV  from  a  single  image  as 2D  imag
 corners  of  the  3D  model  of  the  AUV,  and  then  the  6D pose in the camera coordinates is determined using RANSAC-based  PnP. 
 
 ![](./images/deepcl_pipeline.png)
-Fig. 1: In training (red dash-dotted), the rendered images are translated to the synthetic images resembling Aqua2 swimming
-in a pool or a marine environment. The synthetic images are then fed to a common encoder, which is connected to two
-decoder streams: Detection Decoder (object detection) and Pose Regression Decoder (6D pose regression). Only in inference
-(violet dash-double-dotted), the predicted 2D keypoint projections of 8 corners of the 3D Aqua2 model are processed and
-utilized to obtain a 6D pose using the RANSAC-based PnP algorithm.
