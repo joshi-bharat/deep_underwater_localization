@@ -32,8 +32,12 @@ If you find DeepURL useful in your research, please consider citing:
 * python 3.7.6
 * Cuda Toolkit 10.0
 
+### Running Demo
+
 ### Training
 Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0).
 
 Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
+Download the synthetic dataset obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
+and extract them.
