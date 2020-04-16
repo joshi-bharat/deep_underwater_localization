@@ -13,9 +13,11 @@ corners  of  the  3D  model  of  the  AUV,  and  then  the  6D pose in the camer
 ![](./images/deepcl_pipeline.png)
 
 ```html
-
-<iframe src="https://www.youtube.com/embed/gh6iDQmETaM"> </iframe>
-
+<!-- blank line -->
+<figure class="video_container">
+  <iframe src="https://www.youtube.com/embed/enMumwvLAug" frameborder="0" allowfullscreen="true"> </iframe>
+</figure>
+<!-- blank line -->
 ```
 
 ### Citation
