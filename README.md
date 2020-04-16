@@ -10,9 +10,7 @@ bridge  the  gap  between the  rendered  and  the  real  images  producing  synt
 method  predicts  the  6D  pose  of  an AUV  from  a  single  image  as 2D  image  keypoints  representing 8 
 corners  of  the  3D  model  of  the  AUV,  and  then  the  6D pose in the camera coordinates is determined using RANSAC-based  PnP. 
 
-![](./images/deepcl_pipeline.png)
-
-[![Alt text](./images/deepcl_pipeline.png)](https://www.youtube.com/watch?v=gh6iDQmETaM)
+[![Click on Image for Deep URL YouTube Video ](./images/deepcl_pipeline.png)](https://www.youtube.com/watch?v=gh6iDQmETaM)
 
 
 ### Citation
