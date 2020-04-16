@@ -156,8 +156,10 @@ with tf.Session(config=config) as sess:
                      label=args.classes[labels_[i]] + ', {:.2f}%'.format(scores_[i] * 100), color=(0, 255, 0))
 
     if args.save_result:
-        img_name = args.input_image.split('.')[0]
-        save_img = img_name + '_deepurl_result.png'
+        path = os.path.split(args.input_image)[0]
+        img_name = os.path.split(args.input_image)[1]
+        save_img = path + '/deepurl_result_' + img_name
+        print('Saving pose regression results to: {}'.format(save_img))
         cv2.imwrite(save_img, img_ori)
     else:
         cv2.imshow('Image', img_ori)
