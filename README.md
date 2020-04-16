@@ -36,9 +36,9 @@ If you find DeepURL useful in your research, please consider citing:
 There are some images from  Pool Dataset under `./data/demo_data`. You can run the demo on single image by
 1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
 from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
-2.  ```shell script
-        python test_single_image.py --input_image data/demo_data/1537054379109932699.jpeg --checkpoint_dir path_to_extracted_checkpoint
-    ```
+2. ```shell script
+   python test_single_image.py --input_image data/demo_data/1537054379109932699.jpeg --checkpoint_dir path_to_extracted_checkpoint
+   ```
 ### Training
 *Note: DeepURL only supports one object class until now*
 
