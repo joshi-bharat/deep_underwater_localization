@@ -90,4 +90,11 @@ in the format like `image_index image_absolute_path img_width img_height label_i
     ```shell script
     python test_image_list.py --image_list data/my_data/pool_test.txt
     ```
-### Demo on GoPro Video
+### Running Demo on GoPro Video
+1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
+from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
+2. Download GoPro Video from [[Google Drive]](https://drive.google.com/file/d/11WBw3AIe9QSWjq-5Vlh77Acr-AJgtK7Z/view?usp=sharing)
+3.  ```shell script
+    python test_video.py --test_video path_to_downloaded_test_video
+    ```
+
