@@ -24,11 +24,7 @@ If you find DeepURL useful in your research, please consider citing:
     
 ### Installation
 **Packages**
-* Python 3
-* Install [Tensorflow](https://www.tensorflow.org/install/pip) >= 1.8.0
-* Numpy
-* tqdm
-* opencv-python
+* Python 3, Tensorflow >= 1.8.0, Numpy, tqdm, opencv-python
 
 **Tested on**
 * Ubuntu 18.04
@@ -36,4 +32,7 @@ If you find DeepURL useful in your research, please consider citing:
 * python 3.7.6
 * Cuda Toolkit 10.0
 
+### Training
+Download the pretrained darknet Tensorflow checkpoint,`darknet_weight_checkpoint.zip`, from [GitHub Release ](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0).
+Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
