@@ -40,6 +40,7 @@ from [[GitHub Release ]](https://github.com/joshi-bharat/deep_localization/relea
    python test_single_image.py --input_image data/demo_data/1537054379109932699.jpeg --checkpoint_dir path_to_extracted_checkpoint
    ```
 Sample Result:
+
 ![](data/demo_data/deepurl_result_1537054428126852399.jpeg)
 ### Training
 *Note: DeepURL only supports one object class until now*
