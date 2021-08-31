@@ -270,8 +270,6 @@ if args.use_gt:
     acc5cm5deg = len(np.where((np.array(errs_trans) <= 0.05) & (np.array(errs_angle) <= 5))[0]) * 100. / (
             len(errs_trans) + eps)
     acc3d10 = len(np.where(np.array(errs_3d) <= diam * 0.1)[0]) * 100. / (len(lines) + eps)
-    acc5cm5deg = len(np.where((np.array(errs_trans) <= 0.05) & (np.array(errs_angle) <= 5))[0]) * 100. / (
-            len(errs_trans) + eps)
     corner_acc = len(np.where(np.array(errs_corner2D) <= px_threshold)[0]) * 100. / (len(lines) + eps)
     mean_err_2d = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
