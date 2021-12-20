@@ -50,7 +50,7 @@ Sample Result:
 Extract the darknet checkpoint and place inside `./data/darknet_weights/` directory.  
 
 2. Download the synthetic dataset - `synthetic.zip` obtained after image-to-image translation using CycleGAN from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
-and extract them. The training file is available as `.data/my_data/final_train.txt`. Each line in the training file represents each image
+and extract them. The training file is available as `.data/deepurl/train.txt`. Each line in the training file represents each image
 in the format like `image_index image_absolute_path img_width img_height label_index 2D_bounding_box 3D_keypoint_projection`.
 2D_bounding_box format: `x_min y_min x_max y_max` top left -> (x_min,y_min) and bottom right -> (x_max, y_max). 3D_keypoint_projection contains
 the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. 
@@ -76,7 +76,7 @@ the projections of 8 corners of Aqua (any other object you want to use) 3D objec
 from [[GitHub Release]](https://github.com/joshi-bharat/deep_localization/releases/tag/v1.0) and extract the checkpoint.
 
 2. Download the pool dataset - `pool.zip` from [[AFRL DeepURL Dataset]](https://drive.google.com/drive/folders/1F0TxTIQDR1GJoZxdCPi6o5IMV-UyL0FL)
-and extract them. The testing file is available as `./data/my_data/pool_test.txt`. Each line in the training file represents each image
+and extract them. The testing file is available as `./data/deepurl/pool_test.txt`. Each line in the training file represents each image
 in the format like `image_index image_absolute_path img_width img_height label_index 3D_keypoint_projection`.
 3D_keypoint_projection contains the projections of 8 corners of Aqua (any other object you want to use) 3D object model in the image. 
 
@@ -88,7 +88,7 @@ in the format like `image_index image_absolute_path img_width img_height label_i
     To test on pool dataset, change the `image_absolute_path` to the directory where you downloaded and extracted the pool dataset.
 3. Start testing
     ```shell script
-    python test_image_list.py --image_list data/my_data/pool_test.txt --checkpoint_dir path_to_extracted_checkpoint
+    python test_image_list.py --image_list data/deepurl/pool_test.txt --checkpoint_dir path_to_extracted_checkpoint
     ```
 ### Running Demo on GoPro Video
 1. Download the pretrained DeepURL checkpoint,`deepurl_checkpoint.zip`, 
