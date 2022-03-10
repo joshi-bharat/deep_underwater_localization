@@ -148,6 +148,7 @@ class PoseRegressionLoss():
 
                 x = tf.reshape(x, [h*w, self.nV])
                 y = tf.reshape(y, [h*w, self.nV])
+                conf = tf.sigmoid(conf)
                 conf = tf.reshape(conf, [h * w, self.nV])
                 x_list.append(x)
                 y_list.append(y)
