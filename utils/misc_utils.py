@@ -163,7 +163,7 @@ def config_optimizer(optimizer_name, learning_rate, decay=0.9, momentum=0.9):
 
 def get_bbox_mask(bbox, img_size=(416, 416)):
 
-    if bbox is not None:
+    if bbox is None:
         return None
 
     y_true_13 = np.zeros((img_size[1] // 32, img_size[0] // 32), np.float32)
