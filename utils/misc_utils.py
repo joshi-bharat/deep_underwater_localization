@@ -173,40 +173,42 @@ def get_bbox_mask(bbox, img_size=(416, 416)):
     # y_true_13_final = np.zeros((img_size[1] // 32, img_size[0] // 32), np.float32)
     # y_true_26_final = np.zeros((img_size[1] // 16, img_size[0] // 16), np.float32)
     # y_true_52_final = np.zeros((img_size[1] // 8, img_size[0] // 8), np.float32)
+    try:
+        for box in bbox:
+            x1 = box[0]
+            y1 = box[1]
+            x2 = box[2]
+            y2 = box[3]
 
-    for box in bbox:
-        x1 = box[0]
-        y1 = box[1]
-        x2 = box[2]
-        y2 = box[3]
+            scale_13_x1 = int(x1 // 32)
+            scale_13_y1 = int(y1 // 32)
+            scale_13_x2 = int(x2 // 32)
+            scale_13_y2 = int(y2 // 32)
+            y_true_13[int(scale_13_y1):int(scale_13_y2) + 1, int(scale_13_x1):int(scale_13_x2) + 1] = 1
 
-        scale_13_x1 = int(x1 // 32)
-        scale_13_y1 = int(y1 // 32)
-        scale_13_x2 = int(x2 // 32)
-        scale_13_y2 = int(y2 // 32)
-        y_true_13[int(scale_13_y1):int(scale_13_y2) + 1, int(scale_13_x1):int(scale_13_x2) + 1] = 1
+            scale_26_x1 = int(x1 // 16)
+            scale_26_y1 = int(y1 // 16)
+            scale_26_x2 = int(x2 // 16)
+            scale_26_y2 = int(y2 // 16)
+            y_true_26[int(scale_26_y1):int(scale_26_y2) + 1, int(scale_26_x1):int(scale_26_x2) + 1] = 1
 
-        scale_26_x1 = int(x1 // 16)
-        scale_26_y1 = int(y1 // 16)
-        scale_26_x2 = int(x2 // 16)
-        scale_26_y2 = int(y2 // 16)
-        y_true_26[int(scale_26_y1):int(scale_26_y2) + 1, int(scale_26_x1):int(scale_26_x2) + 1] = 1
+            scale_52_x1 = int(x1 // 8)
+            scale_52_y1 = int(y1 // 8)
+            scale_52_x2 = int(x2 // 8)
+            scale_52_y2 = int(y2 // 8)
+            y_true_52[int(scale_52_y1):int(scale_52_y2) + 1, int(scale_52_x1):int(scale_52_x2) + 1] = 1
 
-        scale_52_x1 = int(x1 // 8)
-        scale_52_y1 = int(y1 // 8)
-        scale_52_x2 = int(x2 // 8)
-        scale_52_y2 = int(y2 // 8)
-        y_true_52[int(scale_52_y1):int(scale_52_y2) + 1, int(scale_52_x1):int(scale_52_x2) + 1] = 1
+            # y_true_13_final = y_true_13 + y_true_13_final
+            # y_true_26_final = y_true_26 + y_true_26_final
+            # y_true_52_final = y_true_52 + y_true_52_final
 
-        # y_true_13_final = y_true_13 + y_true_13_final
-        # y_true_26_final = y_true_26 + y_true_26_final
-        # y_true_52_final = y_true_52 + y_true_52_final
+        y_true_13 = tf.convert_to_tensor(y_true_13)
+        y_true_26 = tf.convert_to_tensor(y_true_26)
+        y_true_52 = tf.convert_to_tensor(y_true_52)
 
-    y_true_13 = tf.convert_to_tensor(y_true_13)
-    y_true_26 = tf.convert_to_tensor(y_true_26)
-    y_true_52 = tf.convert_to_tensor(y_true_52)
-
-    return y_true_13, y_true_26, y_true_52
+        return y_true_13, y_true_26, y_true_52
+    except:
+        return None
 
 def get_3D_corners(vertices):
     min_x = np.min(vertices[0, :])

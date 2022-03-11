@@ -123,15 +123,16 @@ class PoseRegressionLoss():
 
         x_list, y_list, confs_list = [], [], []
 
-        if bbox_masks is not None:
-            for i, result in enumerate(reorg_results):
-                x, y, conf = result
+        for i, result in enumerate(reorg_results):
+            x, y, conf = result
+            conf = tf.sigmoid(conf)
+            try:
                 mask = bbox_masks[i]
+                print("bbox_mask is not None......")
                 # mask = tf.expand_dims(mask, axis=0)
                 # mask = tf.tile(mask, [self.batch_size, 1, 1])
 
                 # print(conf.shape)
-                conf = tf.sigmoid(conf)
                 pred_x = tf.boolean_mask(x, mask)
                 pred_y = tf.boolean_mask(y, mask)
                 pred_conf = tf.boolean_mask(conf, mask)
@@ -140,9 +141,8 @@ class PoseRegressionLoss():
                 y_list.append(pred_y)
                 confs_list.append(pred_conf)
 
-        else:
-            for i, result in enumerate(reorg_results):
-                x, y, conf = result
+            except:
+                print('bbox_mask is None......')
                 w = x.shape[0]
                 h = x.shape[1]
 
